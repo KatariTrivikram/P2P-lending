@@ -97,7 +97,7 @@
     let signer;
     let contract;
 
-    // ✅ Replace with your actual deployed contract address
+    // ✅ Replace this with your actual Sepolia contract address
     const contractAddress = "0xF8848039674240e83EcaF9e0D41a67270c6E1057";
 
     const abi = [
@@ -116,12 +116,14 @@
         }
 
         statusEl.innerText = "⏳ Connecting to MetaMask...";
-        provider = new ethers.providers.Web3Provider(window.ethereum, "any"); // Fixes ENS error
+        provider = new ethers.providers.Web3Provider(window.ethereum, "any");
         await provider.send("eth_requestAccounts", []);
         signer = provider.getSigner();
         contract = new ethers.Contract(contractAddress, abi, signer);
 
-        const account = await signer.getAddress();
+        // ✅ Use eth_accounts directly to avoid ENS
+        const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+        const account = accounts[0];
         document.getElementById("account").innerText = "✅ Connected: " + account;
         statusEl.innerText = "✅ Wallet connected successfully!";
       } catch (err) {
@@ -194,4 +196,3 @@
   </script>
 </body>
 </html>
-
