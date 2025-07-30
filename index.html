@@ -2,65 +2,299 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Test Wallet Connect</title>
-  <style>
-    body {
-      background-color: #111;
-      color: #fff;
-      font-family: Arial, sans-serif;
-      text-align: center;
-      padding-top: 100px;
-    }
-
-    button {
-      padding: 15px 30px;
-      font-size: 18px;
-      background: #00ffff;
-      color: #000;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-    }
-
-    #status {
-      margin-top: 20px;
-      color: lime;
-      font-size: 1.2rem;
-    }
-  </style>
-
-  <!-- ✅ Correct Ethers.js script -->
-  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js" defer></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Document-Based P2P Lending</title>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
-<body>
-  <h1>📡 Connect to MetaMask</h1>
-  <button onclick="connectWallet()">🔌 Connect Wallet</button>
-  <p id="status">Status: Not connected</p>
+<body class="bg-gray-100 p-6">
+  <div class="max-w-3xl mx-auto bg-white p-6 rounded-xl shadow-md">
+    <h1 class="text-2xl font-bold mb-4 text-center">Document-based Lending DApp</h1>
+
+    <button onclick="connectWallet()" class="bg-blue-600 text-white px-4 py-2 rounded mb-4 w-full">Connect Wallet</button>
+    <div id="walletAddress" class="text-sm text-gray-700 mb-4"></div>
+
+    <div class="mb-6">
+      <h2 class="text-xl font-semibold mb-2">Offer Loan (Lender)</h2>
+      <input type="text" id="loanAmount" placeholder="Loan Amount in ETH" class="border p-2 w-full mb-2"/>
+      <input type="text" id="interestRate" placeholder="Interest Rate (%)" class="border p-2 w-full mb-2"/>
+      <input type="text" id="docHashLender" placeholder="Document Hash (from borrower)" class="border p-2 w-full mb-2"/>
+      <button onclick="offerLoan()" class="bg-green-600 text-white px-4 py-2 rounded w-full">Offer Loan</button>
+    </div>
+
+    <div class="mb-6">
+      <h2 class="text-xl font-semibold mb-2">Submit Document (Borrower)</h2>
+      <input type="text" id="docHashBorrower" placeholder="Enter Your Document Hash" class="border p-2 w-full mb-2"/>
+      <button onclick="submitDocument()" class="bg-yellow-500 text-white px-4 py-2 rounded w-full">Submit Document</button>
+    </div>
+
+    <div class="mb-6">
+      <h2 class="text-xl font-semibold mb-2">Take Loan (Borrower)</h2>
+      <button onclick="takeLoan()" class="bg-purple-600 text-white px-4 py-2 rounded w-full">Take Loan</button>
+    </div>
+
+    <div class="mb-6">
+      <h2 class="text-xl font-semibold mb-2">Repay Loan</h2>
+      <input type="text" id="repayAmount" placeholder="Repayment Amount in ETH" class="border p-2 w-full mb-2"/>
+      <button onclick="repayLoan()" class="bg-red-500 text-white px-4 py-2 rounded w-full">Repay Loan</button>
+    </div>
+
+    <div class="mb-6">
+      <h2 class="text-xl font-semibold mb-2">Reset (Owner Only)</h2>
+      <button onclick="resetLoan()" class="bg-gray-700 text-white px-4 py-2 rounded w-full">Reset</button>
+    </div>
+
+    <div id="status" class="text-center text-sm text-gray-600 mt-4"></div>
+  </div>
 
   <script>
+    const contractAddress = "0x492B1291DbF8a8E44C26a9495A954B625354338F";
+    const abi = [
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_interestRate",
+				"type": "uint256"
+			},
+			{
+				"internalType": "string",
+				"name": "docHash",
+				"type": "string"
+			}
+		],
+		"name": "offerLoan",
+		"outputs": [],
+		"stateMutability": "payable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "repayLoan",
+		"outputs": [],
+		"stateMutability": "payable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "resetLoan",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "userDocHash",
+				"type": "string"
+			}
+		],
+		"name": "submitDocument",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "takeLoan",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"stateMutability": "nonpayable",
+		"type": "constructor"
+	},
+	{
+		"inputs": [],
+		"name": "borrower",
+		"outputs": [
+			{
+				"internalType": "address payable",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "documentHash",
+		"outputs": [
+			{
+				"internalType": "bytes32",
+				"name": "",
+				"type": "bytes32"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "interestRate",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "lender",
+		"outputs": [
+			{
+				"internalType": "address payable",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "loanAmount",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "loanOffered",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "loanRepaid",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "loanTaken",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	}
+];
+
+    let signer, contract;
+
     async function connectWallet() {
-      if (typeof window.ethereum === 'undefined') {
-        alert("MetaMask is not installed.");
-        return;
+      if (typeof window.ethereum !== "undefined") {
+        try {
+          await window.ethereum.request({ method: "eth_requestAccounts" });
+          const provider = new ethers.providers.Web3Provider(window.ethereum);
+          signer = provider.getSigner();
+          contract = new ethers.Contract(contractAddress, abi, signer);
+          const address = await signer.getAddress();
+          document.getElementById("walletAddress").innerText = `Connected: ${address}`;
+          showStatus("Wallet connected!");
+        } catch (err) {
+          showStatus("Wallet connection failed.");
+        }
+      } else {
+        alert("Please install MetaMask!");
       }
+    }
 
-      if (typeof ethers === 'undefined') {
-        alert("Ethers.js library failed to load.");
-        return;
-      }
-
+    async function offerLoan() {
       try {
-        const provider = new ethers.providers.Web3Provider(window.ethereum);
-        await provider.send("eth_requestAccounts", []);
-        const signer = provider.getSigner();
-        const address = await signer.getAddress();
-        document.getElementById("status").innerText = "✅ Connected: " + address;
-        console.log("Connected to wallet:", address);
-      } catch (error) {
-        console.error("Connection error:", error);
-        alert("Wallet connection failed: " + error.message);
+        const amount = ethers.utils.parseEther(document.getElementById("loanAmount").value);
+        const rate = document.getElementById("interestRate").value;
+        const docHash = document.getElementById("docHashLender").value;
+        const tx = await contract.offerLoan(rate, docHash, { value: amount });
+        await tx.wait();
+        showStatus("Loan offered successfully.");
+      } catch (err) {
+        showStatus("Error offering loan.");
+        console.error(err);
       }
+    }
+
+    async function submitDocument() {
+      try {
+        const docHash = document.getElementById("docHashBorrower").value;
+        const tx = await contract.submitDocument(docHash);
+        await tx.wait();
+        showStatus("Document submitted successfully.");
+      } catch (err) {
+        showStatus("Error submitting document.");
+        console.error(err);
+      }
+    }
+
+    async function takeLoan() {
+      try {
+        const tx = await contract.takeLoan();
+        await tx.wait();
+        showStatus("Loan taken successfully.");
+      } catch (err) {
+        showStatus("Error taking loan.");
+        console.error(err);
+      }
+    }
+
+    async function repayLoan() {
+      try {
+        const repayAmount = ethers.utils.parseEther(document.getElementById("repayAmount").value);
+        const tx = await contract.repayLoan({ value: repayAmount });
+        await tx.wait();
+        showStatus("Loan repaid successfully.");
+      } catch (err) {
+        showStatus("Error repaying loan.");
+        console.error(err);
+      }
+    }
+
+    async function resetLoan() {
+      try {
+        const tx = await contract.resetLoan();
+        await tx.wait();
+        showStatus("Loan reset successfully.");
+      } catch (err) {
+        showStatus("Error resetting loan.");
+        console.error(err);
+      }
+    }
+
+    function showStatus(message) {
+      document.getElementById("status").innerText = message;
     }
   </script>
 </body>
