@@ -73,12 +73,13 @@
     <h2>💸 Offer Loan</h2>
     <input type="number" id="loanAmount" placeholder="Loan Amount (ETH)">
     <input type="number" id="interest" placeholder="Interest %">
+    <input type="text" id="docHash" placeholder="Document Hash">
     <button class="btn" onclick="offerLoan()">Offer</button>
   </div>
 
   <div class="section">
     <h2>💼 Take Loan</h2>
-    <input type="text" id="docHash" placeholder="Document Hash">
+    <input type="text" id="takeDocHash" placeholder="Document Hash to Match">
     <button class="btn" onclick="takeLoan()">Take</button>
   </div>
 
@@ -89,8 +90,8 @@
 
   <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.min.js"></script>
   <script>
-    const contractAddress = "0xBc4545C2AFF23B66100D9602d6289Be03C6d8c00";
-    const contractABI = [
+    const contractAddress = "0xBc4545C2AFF23B66100D9602d6289Be03C6d8c00"; // your contract
+    const contractABI = [ // ✅ FIXED ABI (only one layer of array)
       {
         "inputs": [
           { "internalType": "uint256", "name": "_interestPercent", "type": "uint256" },
@@ -119,15 +120,15 @@
       },
       {
         "inputs": [],
-        "name": "getLoanDetails",
+        "name": "loan",
         "outputs": [
-          { "internalType": "address", "name": "", "type": "address" },
-          { "internalType": "address", "name": "", "type": "address" },
-          { "internalType": "uint256", "name": "", "type": "uint256" },
-          { "internalType": "uint256", "name": "", "type": "uint256" },
-          { "internalType": "bool", "name": "", "type": "bool" },
-          { "internalType": "bool", "name": "", "type": "bool" },
-          { "internalType": "string", "name": "", "type": "string" }
+          { "internalType": "address payable", "name": "lender", "type": "address" },
+          { "internalType": "address payable", "name": "borrower", "type": "address" },
+          { "internalType": "uint256", "name": "amount", "type": "uint256" },
+          { "internalType": "uint256", "name": "interestPercent", "type": "uint256" },
+          { "internalType": "string", "name": "documentHash", "type": "string" },
+          { "internalType": "bool", "name": "taken", "type": "bool" },
+          { "internalType": "bool", "name": "repaid", "type": "bool" }
         ],
         "stateMutability": "view",
         "type": "function"
@@ -137,7 +138,7 @@
     let provider, signer, contract;
 
     async function connectWallet() {
-      if (typeof window.ethereum !== "undefined") {
+      if (window.ethereum) {
         try {
           provider = new ethers.providers.Web3Provider(window.ethereum);
           await provider.send("eth_requestAccounts", []);
@@ -145,25 +146,24 @@
           contract = new ethers.Contract(contractAddress, contractABI, signer);
           const address = await signer.getAddress();
           document.getElementById("wallet-address").innerText = "Connected: " + address;
-          console.log("Wallet connected:", address);
         } catch (err) {
-          console.error("Connection failed:", err);
-          alert("Wallet connection failed.");
+          console.error(err);
+          alert("Wallet connection failed. Make sure MetaMask is unlocked.");
         }
       } else {
-        alert("Please install MetaMask to use this app.");
+        alert("Please install MetaMask!");
       }
     }
 
     async function offerLoan() {
       const amount = document.getElementById("loanAmount").value;
       const interest = document.getElementById("interest").value;
-      const docHash = prompt("Enter document hash for collateral:");
-      if (!amount || !interest || !docHash) return alert("All fields are required.");
+      const docHash = document.getElementById("docHash").value;
+      if (!amount || !interest || !docHash) return alert("Please fill all fields");
+
       try {
-        const tx = await contract.offerLoan(interest, docHash, {
-          value: ethers.utils.parseEther(amount)
-        });
+        const ethValue = ethers.utils.parseEther(amount);
+        const tx = await contract.offerLoan(interest, docHash, { value: ethValue });
         await tx.wait();
         alert("Loan Offered Successfully!");
       } catch (err) {
@@ -173,8 +173,8 @@
     }
 
     async function takeLoan() {
-      const hash = document.getElementById("docHash").value;
-      if (!hash) return alert("Document hash is required.");
+      const hash = document.getElementById("takeDocHash").value;
+      if (!hash) return alert("Enter document hash to match loan offer.");
       try {
         const tx = await contract.takeLoan(hash);
         await tx.wait();
@@ -187,11 +187,11 @@
 
     async function repayLoan() {
       try {
-        const loanDetails = await contract.getLoanDetails();
-        const amount = loanDetails[2];
-        const interest = loanDetails[3];
-        const total = ethers.BigNumber.from(amount).add(ethers.BigNumber.from(amount).mul(interest).div(100));
-        const tx = await contract.repayLoan({ value: total });
+        const loanDetails = await contract.loan();
+        const repayAmount = loanDetails.amount.add(
+          loanDetails.amount.mul(loanDetails.interestPercent).div(100)
+        );
+        const tx = await contract.repayLoan({ value: repayAmount });
         await tx.wait();
         alert("Loan Repaid Successfully!");
       } catch (err) {
