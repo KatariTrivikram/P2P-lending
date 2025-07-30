@@ -1,180 +1,124 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Decentralized Lending DApp</title>
-  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
-  <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background: #f0f4f8;
-      padding: 30px;
-      color: #333;
-    }
-    h1 {
-      color: #4a90e2;
-    }
-    .section {
-      background: #fff;
-      border-radius: 10px;
-      padding: 20px;
-      margin-top: 20px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    }
-    input, button {
-      padding: 10px;
-      margin: 5px 0;
-      width: 100%;
-      border-radius: 5px;
-      border: 1px solid #ccc;
-    }
-    button {
-      background-color: #4a90e2;
-      color: white;
-      border: none;
-      font-weight: bold;
-      cursor: pointer;
-    }
-    .status {
-      margin-top: 10px;
-      font-weight: bold;
-    }
-    .success { color: green; }
-    .error { color: red; }
-  </style>
+    <title>P2P Lending DApp</title>
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.min.js"></script>
+    <style>
+        body {
+            background-color: #0f0f0f;
+            font-family: Arial, sans-serif;
+            color: white;
+            text-align: center;
+            padding: 40px;
+        }
+        h1 { color: #00ffe5; }
+        .box {
+            background-color: #1f1f1f;
+            padding: 20px;
+            margin: 20px auto;
+            border-radius: 10px;
+            width: 350px;
+            box-shadow: 0 0 20px rgba(0,255,229,0.2);
+        }
+        input, button {
+            margin: 10px;
+            padding: 10px;
+            border-radius: 6px;
+            border: none;
+            width: 90%;
+        }
+        button {
+            background: #00ffe5;
+            color: #000;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #00c4a8;
+        }
+        .status {
+            margin-top: 20px;
+            font-weight: bold;
+            color: #ff5e5e;
+        }
+    </style>
 </head>
 <body>
+    <h1>📄 Decentralized P2P Lending</h1>
+    <button onclick="connectWallet()">🔌 Connect Wallet</button>
+    <div class="status" id="walletStatus"></div>
 
-  <h1>🪙 Decentralized Lending Platform</h1>
+    <div class="box">
+        <h3>💸 Offer Loan</h3>
+        <input type="number" id="loanAmount" placeholder="Loan Amount (ETH)">
+        <input type="number" id="interestRate" placeholder="Interest %">
+        <input type="text" id="docHashOffer" placeholder="Document Hash">
+        <button onclick="offerLoan()">Offer</button>
+    </div>
 
-  <button onclick="connectWallet()">🔌 Connect Wallet</button>
-  <div id="wallet" class="status"></div>
+    <div class="box">
+        <h3>📥 Take Loan</h3>
+        <input type="text" id="docHashTake" placeholder="Document Hash">
+        <button onclick="takeLoan()">Take</button>
+    </div>
 
-  <div class="section">
-    <h2 style="color: #27ae60;">Lender: Offer Loan</h2>
-    <input id="loanAmount" placeholder="Loan Amount in ETH" />
-    <input id="interestRate" placeholder="Interest Rate (%)" />
-    <button onclick="offerLoan()">Offer Loan</button>
-    <div id="offerStatus" class="status"></div>
-  </div>
+    <div class="box">
+        <h3>💰 Repay Loan</h3>
+        <button onclick="repayLoan()">Repay</button>
+    </div>
 
-  <div class="section">
-    <h2 style="color: #f39c12;">Borrower: Take Loan</h2>
-    <input id="collateralHash" placeholder="Document Hash (as collateral)" />
-    <button onclick="takeLoan()">Take Loan</button>
-    <div id="takeStatus" class="status"></div>
-  </div>
+    <script>
+        let provider, signer, contract;
+        const contractAddress = "<YOUR_CONTRACT_ADDRESS>";
+        const abi = [
+            "function offerLoan(uint256,string) external payable",
+            "function takeLoan(string memory) external",
+            "function repayLoan() external payable",
+            "function getLoanDetails() public view returns (address, address, uint256, uint256, bool, bool, string memory)"
+        ];
 
-  <div class="section">
-    <h2 style="color: #c0392b;">Borrower: Repay Loan</h2>
-    <button onclick="repayLoan()">Repay Loan</button>
-    <div id="repayStatus" class="status"></div>
-  </div>
+        async function connectWallet() {
+            if (window.ethereum) {
+                provider = new ethers.providers.Web3Provider(window.ethereum);
+                await provider.send("eth_requestAccounts", []);
+                signer = provider.getSigner();
+                contract = new ethers.Contract(contractAddress, abi, signer);
+                const addr = await signer.getAddress();
+                document.getElementById("walletStatus").innerText = `Connected: ${addr}`;
+            } else {
+                alert("MetaMask not installed!");
+            }
+        }
 
-  <script>
-    const contractAddress = "0xE371D7d686b1F0B094e37bae049136F040662f53";
-    const contractABI = [
-      {
-        "inputs": [
-          { "internalType": "uint256", "name": "_interest", "type": "uint256" }
-        ],
-        "name": "offerLoan",
-        "outputs": [],
-        "stateMutability": "payable",
-        "type": "function"
-      },
-      {
-        "inputs": [
-          { "internalType": "string", "name": "_collateralHash", "type": "string" }
-        ],
-        "name": "takeLoan",
-        "outputs": [],
-        "stateMutability": "nonpayable",
-        "type": "function"
-      },
-      {
-        "inputs": [],
-        "name": "repayLoan",
-        "outputs": [],
-        "stateMutability": "payable",
-        "type": "function"
-      },
-      {
-        "inputs": [],
-        "name": "getLoanDetails",
-        "outputs": [
-          { "internalType": "address", "name": "lender", "type": "address" },
-          { "internalType": "address", "name": "borrower", "type": "address" },
-          { "internalType": "uint256", "name": "amount", "type": "uint256" },
-          { "internalType": "uint256", "name": "interest", "type": "uint256" },
-          { "internalType": "string", "name": "collateralHash", "type": "string" },
-          { "internalType": "bool", "name": "taken", "type": "bool" },
-          { "internalType": "bool", "name": "repaid", "type": "bool" }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-      }
-    ];
+        async function offerLoan() {
+            const amount = document.getElementById("loanAmount").value;
+            const interest = document.getElementById("interestRate").value;
+            const docHash = document.getElementById("docHashOffer").value;
 
-    let provider, signer, contract;
+            const tx = await contract.offerLoan(interest, docHash, {
+                value: ethers.utils.parseEther(amount)
+            });
+            await tx.wait();
+            alert("Loan Offered Successfully!");
+        }
 
-    async function connectWallet() {
-      if (window.ethereum) {
-        await window.ethereum.request({ method: "eth_requestAccounts" });
-        provider = new ethers.providers.Web3Provider(window.ethereum);
-        signer = provider.getSigner();
-        contract = new ethers.Contract(contractAddress, contractABI, signer);
-        const address = await signer.getAddress();
-        document.getElementById("wallet").innerHTML = "Wallet connected: " + address;
-      } else {
-        alert("MetaMask not found. Please install MetaMask!");
-      }
-    }
+        async function takeLoan() {
+            const docHash = document.getElementById("docHashTake").value;
+            const tx = await contract.takeLoan(docHash);
+            await tx.wait();
+            alert("Loan Taken!");
+        }
 
-    async function offerLoan() {
-      const amount = document.getElementById("loanAmount").value;
-      const interest = document.getElementById("interestRate").value;
-      const ethValue = ethers.utils.parseEther(amount);
+        async function repayLoan() {
+            const details = await contract.getLoanDetails();
+            const amount = details[2];
+            const interest = details[3];
+            const total = amount.add((amount.mul(interest)).div(100));
 
-      try {
-        const tx = await contract.offerLoan(interest, { value: ethValue });
-        await tx.wait();
-        document.getElementById("offerStatus").innerHTML = "✅ Loan offered successfully!";
-        document.getElementById("offerStatus").className = "status success";
-      } catch (err) {
-        document.getElementById("offerStatus").innerHTML = "❌ Offer failed: " + err.message;
-        document.getElementById("offerStatus").className = "status error";
-      }
-    }
-
-    async function takeLoan() {
-      const hash = document.getElementById("collateralHash").value;
-
-      try {
-        const tx = await contract.takeLoan(hash);
-        await tx.wait();
-        document.getElementById("takeStatus").innerHTML = "✅ Loan taken!";
-        document.getElementById("takeStatus").className = "status success";
-      } catch (err) {
-        document.getElementById("takeStatus").innerHTML = "❌ Take loan failed: " + err.message;
-        document.getElementById("takeStatus").className = "status error";
-      }
-    }
-
-    async function repayLoan() {
-      try {
-        const details = await contract.getLoanDetails();
-        const totalRepay = ethers.BigNumber.from(details.amount)
-          .add(details.amount.mul(details.interest).div(100));
-
-        const tx = await contract.repayLoan({ value: totalRepay });
-        await tx.wait();
-        document.getElementById("repayStatus").innerHTML = "✅ Repaid successfully!";
-        document.getElementById("repayStatus").className = "status success";
-      } catch (err) {
-        document.getElementById("repayStatus").innerHTML = "❌ Repay failed: " + err.message;
-        document.getElementById("repayStatus").className = "status error";
-      }
-    }
-  </script>
+            const tx = await contract.repayLoan({ value: total });
+            await tx.wait();
+            alert("Loan Repaid with Interest!");
+        }
+    </script>
 </body>
 </html>
