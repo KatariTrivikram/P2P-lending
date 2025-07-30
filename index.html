@@ -1,13 +1,41 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Test Wallet Connect</title>
-  <!-- ✅ Include Ethers.js from CDN -->
-  <script src="https://cdn.ethers.io/lib/ethers-5.7.2.umd.min.js" type="application/javascript"></script>
-</head>
-<body style="background: #111; color: #fff; font-family: Arial; text-align: center; padding-top: 100px;">
+  <style>
+    body {
+      background-color: #111;
+      color: #fff;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding-top: 100px;
+    }
 
-  <button onclick="connectWallet()" style="padding: 15px 30px; font-size: 18px; background: teal; color: white; border: none; border-radius: 8px;">Connect Wallet</button>
+    button {
+      padding: 15px 30px;
+      font-size: 18px;
+      background: #00ffff;
+      color: #000;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    #status {
+      margin-top: 20px;
+      color: lime;
+      font-size: 1.2rem;
+    }
+  </style>
+
+  <!-- ✅ Correct Ethers.js script -->
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js" defer></script>
+</head>
+<body>
+  <h1>📡 Connect to MetaMask</h1>
+  <button onclick="connectWallet()">🔌 Connect Wallet</button>
   <p id="status">Status: Not connected</p>
 
   <script>
@@ -17,14 +45,21 @@
         return;
       }
 
+      if (typeof ethers === 'undefined') {
+        alert("Ethers.js library failed to load.");
+        return;
+      }
+
       try {
         const provider = new ethers.providers.Web3Provider(window.ethereum);
         await provider.send("eth_requestAccounts", []);
         const signer = provider.getSigner();
         const address = await signer.getAddress();
-        document.getElementById("status").innerText = "Connected: " + address;
-      } catch (err) {
-        alert("Wallet connection failed: " + err.message);
+        document.getElementById("status").innerText = "✅ Connected: " + address;
+        console.log("Connected to wallet:", address);
+      } catch (error) {
+        console.error("Connection error:", error);
+        alert("Wallet connection failed: " + error.message);
       }
     }
   </script>
