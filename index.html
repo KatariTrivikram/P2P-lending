@@ -39,7 +39,7 @@
       color: #00ffff;
       margin-bottom: 20px;
     }
-    input[type="text"], input[type="number"] {
+    input[type="text"], input[type="number"], input[type="file"] {
       padding: 10px;
       width: 90%;
       margin-bottom: 15px;
@@ -73,13 +73,13 @@
     <h2>💸 Offer Loan</h2>
     <input type="number" id="loanAmount" placeholder="Loan Amount (ETH)">
     <input type="number" id="interest" placeholder="Interest %">
-    <input type="text" id="docHash" placeholder="Document Hash">
+    <input type="file" id="loanDocFile" accept=".pdf,.jpg,.png,.jpeg">
     <button class="btn" onclick="offerLoan()">Offer</button>
   </div>
 
   <div class="section">
     <h2>💼 Take Loan</h2>
-    <input type="text" id="takeDocHash" placeholder="Document Hash to Match">
+    <input type="text" id="docHash" placeholder="Document Hash">
     <button class="btn" onclick="takeLoan()">Take</button>
   </div>
 
@@ -90,79 +90,184 @@
 
   <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.min.js"></script>
   <script>
-    const contractAddress = "0xBc4545C2AFF23B66100D9602d6289Be03C6d8c00"; // your contract
-    const contractABI = [ // ✅ FIXED ABI (only one layer of array)
-      {
-        "inputs": [
-          { "internalType": "uint256", "name": "_interestPercent", "type": "uint256" },
-          { "internalType": "string", "name": "_documentHash", "type": "string" }
-        ],
-        "name": "offerLoan",
-        "outputs": [],
-        "stateMutability": "payable",
-        "type": "function"
-      },
-      {
-        "inputs": [],
-        "name": "repayLoan",
-        "outputs": [],
-        "stateMutability": "payable",
-        "type": "function"
-      },
-      {
-        "inputs": [
-          { "internalType": "string", "name": "_docHash", "type": "string" }
-        ],
-        "name": "takeLoan",
-        "outputs": [],
-        "stateMutability": "nonpayable",
-        "type": "function"
-      },
-      {
-        "inputs": [],
-        "name": "loan",
-        "outputs": [
-          { "internalType": "address payable", "name": "lender", "type": "address" },
-          { "internalType": "address payable", "name": "borrower", "type": "address" },
-          { "internalType": "uint256", "name": "amount", "type": "uint256" },
-          { "internalType": "uint256", "name": "interestPercent", "type": "uint256" },
-          { "internalType": "string", "name": "documentHash", "type": "string" },
-          { "internalType": "bool", "name": "taken", "type": "bool" },
-          { "internalType": "bool", "name": "repaid", "type": "bool" }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-      }
-    ];
+    const contractAddress = "0xBc4545C2AFF23B66100D9602d6289Be03C6d8c00";
+    const contractABI = [
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_interestPercent",
+				"type": "uint256"
+			},
+			{
+				"internalType": "string",
+				"name": "_documentHash",
+				"type": "string"
+			}
+		],
+		"name": "offerLoan",
+		"outputs": [],
+		"stateMutability": "payable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "repayLoan",
+		"outputs": [],
+		"stateMutability": "payable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "_docHash",
+				"type": "string"
+			}
+		],
+		"name": "takeLoan",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "getLoanDetails",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			},
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			},
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			},
+			{
+				"internalType": "string",
+				"name": "",
+				"type": "string"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "loan",
+		"outputs": [
+			{
+				"internalType": "address payable",
+				"name": "lender",
+				"type": "address"
+			},
+			{
+				"internalType": "address payable",
+				"name": "borrower",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "interestPercent",
+				"type": "uint256"
+			},
+			{
+				"internalType": "string",
+				"name": "documentHash",
+				"type": "string"
+			},
+			{
+				"internalType": "bool",
+				"name": "taken",
+				"type": "bool"
+			},
+			{
+				"internalType": "bool",
+				"name": "repaid",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	}
+];
 
     let provider, signer, contract;
 
     async function connectWallet() {
-      if (window.ethereum) {
-        try {
-          provider = new ethers.providers.Web3Provider(window.ethereum);
-          await provider.send("eth_requestAccounts", []);
-          signer = provider.getSigner();
-          contract = new ethers.Contract(contractAddress, contractABI, signer);
-          const address = await signer.getAddress();
-          document.getElementById("wallet-address").innerText = "Connected: " + address;
-        } catch (err) {
-          console.error(err);
-          alert("Wallet connection failed. Make sure MetaMask is unlocked.");
-        }
-      } else {
-        alert("Please install MetaMask!");
+      if (typeof window.ethereum === 'undefined') {
+        alert("MetaMask is not installed. Please install it to use this app.");
+        return;
       }
+
+      try {
+        await window.ethereum.request({ method: "eth_requestAccounts" });
+        provider = new ethers.providers.Web3Provider(window.ethereum);
+        signer = provider.getSigner();
+        const address = await signer.getAddress();
+        contract = new ethers.Contract(contractAddress, contractABI, signer);
+        document.getElementById("wallet-address").innerText = "Connected: " + address;
+      } catch (err) {
+        console.error("Wallet connection failed:", err);
+        alert("Wallet connection failed. Make sure MetaMask is unlocked and approved.");
+      }
+    }
+
+    async function hashFile(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = async function (event) {
+          const buffer = new Uint8Array(event.target.result);
+          const hashBuffer = await crypto.subtle.digest("SHA-256", buffer);
+          const hashArray = Array.from(new Uint8Array(hashBuffer));
+          const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+          resolve(hashHex);
+        };
+        reader.onerror = reject;
+        reader.readAsArrayBuffer(file);
+      });
     }
 
     async function offerLoan() {
       const amount = document.getElementById("loanAmount").value;
       const interest = document.getElementById("interest").value;
-      const docHash = document.getElementById("docHash").value;
-      if (!amount || !interest || !docHash) return alert("Please fill all fields");
+      const fileInput = document.getElementById("loanDocFile");
+
+      if (!fileInput.files[0]) {
+        alert("Please upload a document file.");
+        return;
+      }
 
       try {
+        const docHash = await hashFile(fileInput.files[0]);
         const ethValue = ethers.utils.parseEther(amount);
+
         const tx = await contract.offerLoan(interest, docHash, { value: ethValue });
         await tx.wait();
         alert("Loan Offered Successfully!");
@@ -173,8 +278,7 @@
     }
 
     async function takeLoan() {
-      const hash = document.getElementById("takeDocHash").value;
-      if (!hash) return alert("Enter document hash to match loan offer.");
+      const hash = document.getElementById("docHash").value;
       try {
         const tx = await contract.takeLoan(hash);
         await tx.wait();
@@ -187,10 +291,7 @@
 
     async function repayLoan() {
       try {
-        const loanDetails = await contract.loan();
-        const repayAmount = loanDetails.amount.add(
-          loanDetails.amount.mul(loanDetails.interestPercent).div(100)
-        );
+        const repayAmount = await contract.getRepayAmount(); // This function must exist in your contract
         const tx = await contract.repayLoan({ value: repayAmount });
         await tx.wait();
         alert("Loan Repaid Successfully!");
