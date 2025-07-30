@@ -1,272 +1,28 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Document-based P2P Lending</title>
-  <meta charset="UTF-8" />
+  <title>Test Wallet Connect</title>
   <script src="https://cdn.jsdelivr.net/npm/ethers/dist/ethers.min.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
-  <style>
-    body {
-      background-color: #121212;
-      color: #eee;
-      font-family: 'Roboto', sans-serif;
-      text-align: center;
-      padding: 20px;
-    }
-    button {
-      padding: 10px 20px;
-      font-size: 16px;
-      background-color: #04bfbf;
-      border: none;
-      color: white;
-      border-radius: 5px;
-      cursor: pointer;
-      margin-top: 10px;
-    }
-    input {
-      padding: 8px;
-      margin: 6px;
-      border-radius: 4px;
-      border: 1px solid #ccc;
-    }
-    .section {
-      background-color: #1f1f1f;
-      margin: 20px auto;
-      padding: 20px;
-      border-radius: 10px;
-      max-width: 500px;
-    }
-    .highlight {
-      color: #ffa500;
-    }
-  </style>
 </head>
 <body>
-  <h1 class="highlight">🧾 Decentralized Lending (Doc-based)</h1>
-
-  <button onclick="connectWallet()">🔌 Connect Wallet</button>
-  <p id="walletAddress">Not connected</p>
-
-  <div class="section">
-    <h2 class="highlight">📤 Offer Loan</h2>
-    <input type="text" id="interest" placeholder="Interest rate (%)" />
-    <input type="text" id="docHash" placeholder="Document Hash" />
-    <input type="text" id="amount" placeholder="Amount in ETH" />
-    <button onclick="offerLoan()">Offer Loan</button>
-  </div>
-
-  <div class="section">
-    <h2 class="highlight">📥 Take Loan</h2>
-    <button onclick="takeLoan()">Take Loan</button>
-  </div>
-
-  <div class="section">
-    <h2 class="highlight">💰 Repay Loan</h2>
-    <button onclick="repayLoan()">Repay with Interest</button>
-  </div>
+  <button onclick="connectWallet()">Connect Wallet</button>
+  <p id="status">Status: Not connected</p>
 
   <script>
-    const contractAddress = "0x1594b789b42d5Be33218FCAD9Dc50ccFBf32454f";
-    const abi = [
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "_interestRate",
-				"type": "uint256"
-			},
-			{
-				"internalType": "string",
-				"name": "docHash",
-				"type": "string"
-			}
-		],
-		"name": "offerLoan",
-		"outputs": [],
-		"stateMutability": "payable",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "repayLoan",
-		"outputs": [],
-		"stateMutability": "payable",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "resetLoan",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "takeLoan",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "borrower",
-		"outputs": [
-			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "documentHash",
-		"outputs": [
-			{
-				"internalType": "bytes32",
-				"name": "",
-				"type": "bytes32"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "interestRate",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "lender",
-		"outputs": [
-			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "loanAmount",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "loanOffered",
-		"outputs": [
-			{
-				"internalType": "bool",
-				"name": "",
-				"type": "bool"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "loanRepaid",
-		"outputs": [
-			{
-				"internalType": "bool",
-				"name": "",
-				"type": "bool"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "loanTaken",
-		"outputs": [
-			{
-				"internalType": "bool",
-				"name": "",
-				"type": "bool"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	}
-];
-    let signer;
-    let contract;
-
     async function connectWallet() {
-      if (typeof window.ethereum !== 'undefined') {
-        try {
-          const provider = new ethers.providers.Web3Provider(window.ethereum);
-          await provider.send("eth_requestAccounts", []);
-          signer = provider.getSigner();
-          const address = await signer.getAddress();
-          document.getElementById("walletAddress").innerText = `Connected: ${address}`;
-          contract = new ethers.Contract(contractAddress, abi, signer);
-        } catch (error) {
-          alert("Wallet connection failed. Make sure MetaMask is unlocked and approved.");
-        }
-      } else {
-        alert("MetaMask is not installed!");
+      if (typeof window.ethereum === 'undefined') {
+        alert("MetaMask is not installed.");
+        return;
       }
-    }
 
-    async function offerLoan() {
       try {
-        const interest = document.getElementById("interest").value;
-        const hash = document.getElementById("docHash").value;
-        const amount = ethers.utils.parseEther(document.getElementById("amount").value);
-
-        const tx = await contract.offerLoan(interest, hash, { value: amount });
-        await tx.wait();
-        alert("Loan offered successfully.");
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        await provider.send("eth_requestAccounts", []);
+        const signer = provider.getSigner();
+        const address = await signer.getAddress();
+        document.getElementById("status").innerText = "Connected: " + address;
       } catch (err) {
-        alert("Offer loan failed: " + err.message);
-      }
-    }
-
-    async function takeLoan() {
-      try {
-        const tx = await contract.takeLoan();
-        await tx.wait();
-        alert("Loan taken successfully.");
-      } catch (err) {
-        alert("Take loan failed: " + err.message);
-      }
-    }
-
-    async function repayLoan() {
-      try {
-        const loanAmount = await contract.loanAmount();
-        const interestRate = await contract.interestRate();
-        const repay = loanAmount.add(loanAmount.mul(interestRate).div(100));
-
-        const tx = await contract.repayLoan({ value: repay });
-        await tx.wait();
-        alert("Loan repaid with interest.");
-      } catch (err) {
-        alert("Repay failed: " + err.message);
+        alert("Wallet connection failed: " + err.message);
       }
     }
   </script>
