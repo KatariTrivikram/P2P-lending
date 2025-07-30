@@ -59,15 +59,20 @@
 
         .status {
             margin-top: 20px;
-            color: #ff5252;
             font-weight: bold;
+        }
+        .connected {
+            color: #00ff90;
+        }
+        .disconnected {
+            color: #ff5252;
         }
     </style>
 </head>
 <body>
     <h1>Decentralized Lending DApp</h1>
     <button onclick="connectWallet()">🔌 Connect Wallet</button>
-    <div class="status" id="walletAddress"></div>
+    <div class="status disconnected" id="walletAddress">Wallet not connected</div>
 
     <div class="section">
         <h2>Offer Loan</h2>
@@ -79,14 +84,12 @@
     <div class="section">
         <h2>Take Loan</h2>
         <input type="number" id="takeCollateral" placeholder="Collateral to Lock (ETH)">
-        <input type="text" id="loanIdToTake" placeholder="Loan ID">
         <button onclick="takeLoan()">💰 Take Loan</button>
     </div>
 
     <div class="section">
         <h2>Repay Loan</h2>
         <input type="number" id="repayAmount" placeholder="Repay Amount (ETH)">
-        <input type="text" id="loanIdToRepay" placeholder="Loan ID">
         <button onclick="repayLoan()">🔁 Repay Loan</button>
     </div>
 
@@ -95,48 +98,67 @@
         let signer;
         let contract;
 
-        const contractAddress = '0x820535cc905D0142871Bc129D2306fd6237A0bB0';
+        const contractAddress = '0x820535cc905D0142871Bc129D2306fd6237A0bB0'; // Replace this
         const contractABI = [
             "function offerLoan(uint256 _collateral) external payable",
-            "function takeLoan(uint256 loanId) external payable",
-            "function repayLoan(uint256 loanId) external payable"
+            "function takeLoan() external payable",
+            "function repayLoan() external payable"
         ];
 
         async function connectWallet() {
-            if (window.ethereum) {
-                await window.ethereum.request({ method: 'eth_requestAccounts' });
-                provider = new ethers.providers.Web3Provider(window.ethereum);
-                signer = provider.getSigner();
-                const address = await signer.getAddress();
-                document.getElementById('walletAddress').innerText = `Connected: ${address}`;
-                contract = new ethers.Contract(contractAddress, contractABI, signer);
+            if (typeof window.ethereum !== 'undefined') {
+                try {
+                    await window.ethereum.request({ method: 'eth_requestAccounts' });
+                    provider = new ethers.providers.Web3Provider(window.ethereum);
+                    signer = provider.getSigner();
+                    const address = await signer.getAddress();
+                    document.getElementById('walletAddress').innerText = `Connected: ${address}`;
+                    document.getElementById('walletAddress').className = 'status connected';
+                    contract = new ethers.Contract(contractAddress, contractABI, signer);
+                } catch (err) {
+                    alert("Connection to wallet failed");
+                    console.error(err);
+                }
             } else {
                 alert("MetaMask not found. Please install MetaMask!");
             }
         }
 
         async function offerLoan() {
-            const amount = ethers.utils.parseEther(document.getElementById("offerAmount").value);
-            const collateral = ethers.utils.parseEther(document.getElementById("offerCollateral").value);
-            const tx = await contract.offerLoan(collateral, { value: amount });
-            await tx.wait();
-            alert("Loan Offered Successfully!");
+            try {
+                const amount = ethers.utils.parseEther(document.getElementById("offerAmount").value);
+                const collateral = ethers.utils.parseEther(document.getElementById("offerCollateral").value);
+                const tx = await contract.offerLoan(collateral, { value: amount });
+                await tx.wait();
+                alert("✅ Loan Offered Successfully!");
+            } catch (err) {
+                alert("❌ Failed to offer loan");
+                console.error(err);
+            }
         }
 
         async function takeLoan() {
-            const loanId = document.getElementById("loanIdToTake").value;
-            const collateral = ethers.utils.parseEther(document.getElementById("takeCollateral").value);
-            const tx = await contract.takeLoan(loanId, { value: collateral });
-            await tx.wait();
-            alert("Loan Taken Successfully!");
+            try {
+                const collateral = ethers.utils.parseEther(document.getElementById("takeCollateral").value);
+                const tx = await contract.takeLoan({ value: collateral });
+                await tx.wait();
+                alert("✅ Loan Taken Successfully!");
+            } catch (err) {
+                alert("❌ Failed to take loan");
+                console.error(err);
+            }
         }
 
         async function repayLoan() {
-            const loanId = document.getElementById("loanIdToRepay").value;
-            const repayAmount = ethers.utils.parseEther(document.getElementById("repayAmount").value);
-            const tx = await contract.repayLoan(loanId, { value: repayAmount });
-            await tx.wait();
-            alert("Loan Repaid Successfully!");
+            try {
+                const repayAmount = ethers.utils.parseEther(document.getElementById("repayAmount").value);
+                const tx = await contract.repayLoan({ value: repayAmount });
+                await tx.wait();
+                alert("✅ Loan Repaid Successfully!");
+            } catch (err) {
+                alert("❌ Failed to repay loan");
+                console.error(err);
+            }
         }
     </script>
 </body>
