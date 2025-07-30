@@ -3,51 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Document-Based P2P Lending</title>
-  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-</head>
-<body class="bg-gray-100 p-6">
-  <div class="max-w-3xl mx-auto bg-white p-6 rounded-xl shadow-md">
-    <h1 class="text-2xl font-bold mb-4 text-center">Document-based Lending DApp</h1>
-
-    <button onclick="connectWallet()" class="bg-blue-600 text-white px-4 py-2 rounded mb-4 w-full">Connect Wallet</button>
-    <div id="walletAddress" class="text-sm text-gray-700 mb-4"></div>
-
-    <div class="mb-6">
-      <h2 class="text-xl font-semibold mb-2">Offer Loan (Lender)</h2>
-      <input type="text" id="loanAmount" placeholder="Loan Amount in ETH" class="border p-2 w-full mb-2"/>
-      <input type="text" id="interestRate" placeholder="Interest Rate (%)" class="border p-2 w-full mb-2"/>
-      <input type="text" id="docHashLender" placeholder="Document Hash (from borrower)" class="border p-2 w-full mb-2"/>
-      <button onclick="offerLoan()" class="bg-green-600 text-white px-4 py-2 rounded w-full">Offer Loan</button>
-    </div>
-
-    <div class="mb-6">
-      <h2 class="text-xl font-semibold mb-2">Submit Document (Borrower)</h2>
-      <input type="text" id="docHashBorrower" placeholder="Enter Your Document Hash" class="border p-2 w-full mb-2"/>
-      <button onclick="submitDocument()" class="bg-yellow-500 text-white px-4 py-2 rounded w-full">Submit Document</button>
-    </div>
-
-    <div class="mb-6">
-      <h2 class="text-xl font-semibold mb-2">Take Loan (Borrower)</h2>
-      <button onclick="takeLoan()" class="bg-purple-600 text-white px-4 py-2 rounded w-full">Take Loan</button>
-    </div>
-
-    <div class="mb-6">
-      <h2 class="text-xl font-semibold mb-2">Repay Loan</h2>
-      <input type="text" id="repayAmount" placeholder="Repayment Amount in ETH" class="border p-2 w-full mb-2"/>
-      <button onclick="repayLoan()" class="bg-red-500 text-white px-4 py-2 rounded w-full">Repay Loan</button>
-    </div>
-
-    <div class="mb-6">
-      <h2 class="text-xl font-semibold mb-2">Reset (Owner Only)</h2>
-      <button onclick="resetLoan()" class="bg-gray-700 text-white px-4 py-2 rounded w-full">Reset</button>
-    </div>
-
-    <div id="status" class="text-center text-sm text-gray-600 mt-4"></div>
-  </div>
-
+  <title>Document-backed Loan DApp</title>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@6.6.2/dist/ethers.umd.min.js"></script>
   <script>
+    let provider, signer, contract;
+
     const contractAddress = "0x492B1291DbF8a8E44C26a9495A954B625354338F";
     const abi = [
 	{
@@ -213,89 +173,114 @@
 	}
 ];
 
-    let signer, contract;
-
     async function connectWallet() {
-      if (typeof window.ethereum !== "undefined") {
-        try {
-          await window.ethereum.request({ method: "eth_requestAccounts" });
-          const provider = new ethers.providers.Web3Provider(window.ethereum);
-          signer = provider.getSigner();
-          contract = new ethers.Contract(contractAddress, abi, signer);
-          const address = await signer.getAddress();
-          document.getElementById("walletAddress").innerText = `Connected: ${address}`;
-          showStatus("Wallet connected!");
-        } catch (err) {
-          showStatus("Wallet connection failed.");
-        }
-      } else {
-        alert("Please install MetaMask!");
+      try {
+        if (!window.ethereum) throw new Error("MetaMask not installed.");
+        provider = new ethers.BrowserProvider(window.ethereum);
+        await provider.send("eth_requestAccounts", []);
+        signer = await provider.getSigner();
+        contract = new ethers.Contract(contractAddress, abi, signer);
+        document.getElementById("walletStatus").innerText = "✅ Wallet Connected";
+      } catch (err) {
+        alert("Wallet connection failed: " + err.message);
       }
+    }
+
+    async function hashFile(file) {
+      const buffer = await file.arrayBuffer();
+      const hashBuffer = await crypto.subtle.digest("SHA-256", buffer);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      return "0x" + hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
     }
 
     async function offerLoan() {
-      try {
-        const amount = ethers.utils.parseEther(document.getElementById("loanAmount").value);
-        const rate = document.getElementById("interestRate").value;
-        const docHash = document.getElementById("docHashLender").value;
-        const tx = await contract.offerLoan(rate, docHash, { value: amount });
-        await tx.wait();
-        showStatus("Loan offered successfully.");
-      } catch (err) {
-        showStatus("Error offering loan.");
-        console.error(err);
-      }
+      const file = document.getElementById("lenderDoc").files[0];
+      const interest = document.getElementById("interestRate").value;
+      const amountEth = document.getElementById("loanAmount").value;
+
+      if (!file || !interest || !amountEth) return alert("Please fill all fields.");
+
+      const docHash = await hashFile(file);
+      const tx = await contract.offerLoan(interest, docHash, {
+        value: ethers.parseEther(amountEth)
+      });
+      await tx.wait();
+      alert("✅ Loan Offered Successfully");
     }
 
     async function submitDocument() {
-      try {
-        const docHash = document.getElementById("docHashBorrower").value;
-        const tx = await contract.submitDocument(docHash);
-        await tx.wait();
-        showStatus("Document submitted successfully.");
-      } catch (err) {
-        showStatus("Error submitting document.");
-        console.error(err);
-      }
+      const file = document.getElementById("borrowerDoc").files[0];
+      if (!file) return alert("Please upload a document.");
+
+      const docHash = await hashFile(file);
+      const tx = await contract.submitDocument(docHash);
+      await tx.wait();
+      alert("✅ Document Submitted!");
     }
 
     async function takeLoan() {
-      try {
-        const tx = await contract.takeLoan();
-        await tx.wait();
-        showStatus("Loan taken successfully.");
-      } catch (err) {
-        showStatus("Error taking loan.");
-        console.error(err);
-      }
+      const tx = await contract.takeLoan();
+      await tx.wait();
+      alert("✅ Loan Taken");
     }
 
     async function repayLoan() {
-      try {
-        const repayAmount = ethers.utils.parseEther(document.getElementById("repayAmount").value);
-        const tx = await contract.repayLoan({ value: repayAmount });
-        await tx.wait();
-        showStatus("Loan repaid successfully.");
-      } catch (err) {
-        showStatus("Error repaying loan.");
-        console.error(err);
-      }
+      const loanAmount = await contract.loanAmount();
+      const interestRate = await contract.interestRate();
+      const interest = (loanAmount * BigInt(interestRate)) / 100n;
+      const total = loanAmount + interest;
+
+      const tx = await contract.repayLoan({ value: total });
+      await tx.wait();
+      alert("✅ Loan Repaid with Interest");
     }
 
     async function resetLoan() {
-      try {
-        const tx = await contract.resetLoan();
-        await tx.wait();
-        showStatus("Loan reset successfully.");
-      } catch (err) {
-        showStatus("Error resetting loan.");
-        console.error(err);
-      }
-    }
-
-    function showStatus(message) {
-      document.getElementById("status").innerText = message;
+      const tx = await contract.resetLoan();
+      await tx.wait();
+      alert("🔁 Loan Reset");
     }
   </script>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-6 font-sans">
+  <div class="max-w-2xl mx-auto bg-white shadow-lg p-6 rounded-xl space-y-6">
+    <h1 class="text-2xl font-bold text-center">📄 Document-Based Lending DApp</h1>
+
+    <button onclick="connectWallet()" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded">
+      Connect Wallet
+    </button>
+    <p id="walletStatus" class="text-center text-sm text-gray-500">Not connected</p>
+
+    <div class="border-t pt-4 space-y-4">
+      <h2 class="text-lg font-semibold">👨‍💼 Lender: Offer Loan</h2>
+      <input type="file" id="lenderDoc" class="border p-2 rounded w-full" />
+      <input type="number" placeholder="Interest Rate (%)" id="interestRate" class="border p-2 rounded w-full" />
+      <input type="number" placeholder="Loan Amount in ETH" id="loanAmount" class="border p-2 rounded w-full" />
+      <button onclick="offerLoan()" class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded w-full">
+        Offer Loan
+      </button>
+    </div>
+
+    <div class="border-t pt-4 space-y-4">
+      <h2 class="text-lg font-semibold">🧑‍💼 Borrower</h2>
+      <input type="file" id="borrowerDoc" class="border p-2 rounded w-full" />
+      <button onclick="submitDocument()" class="bg-yellow-500 hover:bg-yellow-600 text-white py-2 px-4 rounded w-full">
+        Submit Document
+      </button>
+      <button onclick="takeLoan()" class="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded w-full">
+        Take Loan
+      </button>
+      <button onclick="repayLoan()" class="bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded w-full">
+        Repay Loan
+      </button>
+    </div>
+
+    <div class="border-t pt-4">
+      <button onclick="resetLoan()" class="w-full bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded">
+        Reset Loan (Admin Only)
+      </button>
+    </div>
+  </div>
 </body>
 </html>
