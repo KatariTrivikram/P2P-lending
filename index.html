@@ -2,10 +2,12 @@
 <html>
 <head>
   <title>Test Wallet Connect</title>
-  <script src="https://cdn.jsdelivr.net/npm/ethers/dist/ethers.min.js"></script>
+  <!-- ✅ Include Ethers.js from CDN -->
+  <script src="https://cdn.ethers.io/lib/ethers-5.7.2.umd.min.js" type="application/javascript"></script>
 </head>
-<body>
-  <button onclick="connectWallet()">Connect Wallet</button>
+<body style="background: #111; color: #fff; font-family: Arial; text-align: center; padding-top: 100px;">
+
+  <button onclick="connectWallet()" style="padding: 15px 30px; font-size: 18px; background: teal; color: white; border: none; border-radius: 8px;">Connect Wallet</button>
   <p id="status">Status: Not connected</p>
 
   <script>
