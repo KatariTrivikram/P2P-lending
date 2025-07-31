@@ -1,99 +1,109 @@
+<!-- Save this as index.html and open in browser -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Decentralized Document Loan Platform</title>
-  <script src="https://cdn.jsdelivr.net/npm/ethers/dist/ethers.min.js"></script>
+  <title>Document-based P2P Loan Platform</title>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.min.js"></script>
   <style>
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(to right, #e0f7fa, #f1f8e9);
-      padding: 30px;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(to right, #f0f4f7, #e6f7ff);
+      padding: 20px;
     }
+
+    .container {
+      max-width: 700px;
+      margin: auto;
+    }
+
     .section {
-      background: white;
-      padding: 30px;
-      margin: 30px auto;
-      border-radius: 20px;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.1);
-      max-width: 600px;
+      background-color: #ffffff;
+      padding: 25px;
+      border-radius: 15px;
+      box-shadow: 0px 0px 10px rgba(0,0,0,0.1);
+      margin-top: 30px;
     }
+
     h2 {
       text-align: center;
-      color: #2c3e50;
-      margin-bottom: 20px;
+      color: #003366;
     }
-    input, button, label {
+
+    input[type="file"],
+    input[type="text"],
+    input[type="number"] {
       width: 100%;
-      padding: 15px;
-      margin: 10px 0;
-      border-radius: 12px;
+      padding: 12px;
+      margin-top: 12px;
       border: 1px solid #ccc;
-      font-size: 16px;
-      transition: 0.2s ease-in-out;
+      border-radius: 10px;
     }
-    input:focus {
-      border-color: #007bff;
-      box-shadow: 0 0 8px rgba(0,123,255,0.2);
-      outline: none;
-    }
+
     button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 20px;
       background-color: #007bff;
-      color: white;
-      font-weight: bold;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: #0056b3;
-    }
-    #walletStatus {
-      text-align: center;
-      margin-bottom: 20px;
-      color: #2c3e50;
-      font-weight: bold;
-    }
-    #connectWalletBtn {
-      display: block;
-      margin: 0 auto 20px auto;
-      padding: 12px 20px;
-      font-size: 16px;
-      background-color: #28a745;
       color: white;
       border: none;
       border-radius: 10px;
+      font-size: 16px;
+      cursor: pointer;
     }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    #walletStatus {
+      margin-top: 15px;
+      text-align: center;
+      font-weight: bold;
+      color: #333;
+    }
+
+    #connectWalletBtn {
+      display: block;
+      margin: auto;
+      background-color: #28a745;
+    }
+
     #connectWalletBtn:hover {
-      background-color: #218838;
+      background-color: #1e7e34;
     }
   </style>
 </head>
 <body>
+  <div class="container">
+    <button id="connectWalletBtn" onclick="connectWallet()">Connect Wallet</button>
+    <div id="walletStatus">Wallet not connected</div>
 
-  <button id="connectWalletBtn" onclick="connectWallet()">Connect Wallet</button>
-  <div id="walletStatus">Wallet not connected</div>
+    <!-- Lender Section -->
+    <div class="section">
+      <h2>Lender Panel</h2>
+      <input type="file" id="lenderDoc" />
+      <input type="number" id="interestRate" placeholder="Interest Rate (%)" />
+      <input type="text" id="loanAmount" placeholder="Loan Amount (ETH)" />
+      <button onclick="offerLoan()">Offer Loan</button>
+    </div>
 
-  <div class="section">
-    <h2>Lender Panel</h2>
-    <input type="file" id="lenderDoc" />
-    <input type="number" id="interestRate" placeholder="Interest Rate (%)" />
-    <input type="text" id="loanAmount" placeholder="Loan Amount (ETH)" />
-    <button onclick="offerLoan()">Offer Loan</button>
-  </div>
-
-  <div class="section">
-    <h2>Borrower Panel</h2>
-    <input type="file" id="borrowDoc" />
-    <input type="text" id="phoneNumber" placeholder="Enter phone number" />
-    <input type="text" id="otp" placeholder="Enter OTP" />
-    <button onclick="submitDocument()">Submit Document & Phone</button>
-    <button onclick="takeLoan()">Take Loan</button>
-    <button onclick="repayLoan()">Repay Loan</button>
+    <!-- Borrower Section -->
+    <div class="section">
+      <h2>Borrower Panel</h2>
+      <input type="file" id="borrowDoc" />
+      <input type="text" id="phoneNumber" placeholder="Enter phone number" />
+      <input type="text" id="otp" placeholder="Enter OTP" />
+      <button onclick="submitDocument()">Submit Document & Phone</button>
+      <button onclick="takeLoan()">Take Loan</button>
+      <button onclick="repayLoan()">Repay Loan</button>
+    </div>
   </div>
 
   <script>
     const CONTRACT_ADDRESS = "0x492B1291DbF8a8E44C26a9495A954B625354338F";
-    const CONTRACT_ABI = [
+    const ABI = [
       {
         "inputs": [
           { "internalType": "uint256", "name": "_interestRate", "type": "uint256" },
@@ -140,20 +150,20 @@
     let signer, contract;
 
     async function connectWallet() {
-      if (window.ethereum) {
+      if (typeof window.ethereum !== "undefined") {
         try {
           const provider = new ethers.providers.Web3Provider(window.ethereum);
           await provider.send("eth_requestAccounts", []);
           signer = provider.getSigner();
-          contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
-          const address = await signer.getAddress();
-          document.getElementById("walletStatus").innerText = `Wallet Connected: ${address}`;
+          contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
+          const addr = await signer.getAddress();
+          document.getElementById("walletStatus").innerText = `Wallet Connected: ${addr}`;
         } catch (err) {
-          console.error("Wallet connection failed:", err);
+          console.error("Connection error", err);
           document.getElementById("walletStatus").innerText = "Connection failed. Try again.";
         }
       } else {
-        alert("Please install MetaMask.");
+        alert("MetaMask is not installed!");
         document.getElementById("walletStatus").innerText = "MetaMask not detected.";
       }
     }
@@ -168,41 +178,37 @@
       const file = document.getElementById("lenderDoc").files[0];
       const rate = document.getElementById("interestRate").value;
       const amount = document.getElementById("loanAmount").value;
-      if (!file || !rate || !amount) {
-        alert("Please complete all lender fields.");
-        return;
-      }
+
+      if (!file || !rate || !amount) return alert("Fill all lender fields.");
       const hash = await getFileHash(file);
       const value = ethers.utils.parseEther(amount);
       const tx = await contract.offerLoan(rate, hash, { value });
       await tx.wait();
-      alert("Loan offered!");
+      alert("Loan offered successfully!");
     }
 
     async function submitDocument() {
       const file = document.getElementById("borrowDoc").files[0];
       const phone = document.getElementById("phoneNumber").value;
       const otp = document.getElementById("otp").value;
-      if (!file || !phone || !otp) {
-        alert("Please complete all borrower fields including OTP.");
-        return;
-      }
+
+      if (!file || !phone || !otp) return alert("Fill all borrower fields including OTP.");
       const hash = await getFileHash(file);
       const tx = await contract.submitDocument(hash, phone);
       await tx.wait();
-      alert("Document, phone and OTP submitted successfully.");
+      alert("Document submitted with phone.");
     }
 
     async function takeLoan() {
       const tx = await contract.takeLoan();
       await tx.wait();
-      alert("Loan taken successfully.");
+      alert("Loan received!");
     }
 
     async function repayLoan() {
-      const tx = await contract.repayLoan({ value: ethers.utils.parseEther("0.1") });
+      const tx = await contract.repayLoan({ value: ethers.utils.parseEther("0.1") }); // Adjust value as needed
       await tx.wait();
-      alert("Loan repaid.");
+      alert("Loan repaid!");
     }
   </script>
 </body>
