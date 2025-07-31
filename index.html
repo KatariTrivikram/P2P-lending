@@ -85,8 +85,21 @@
   </div>
 
   <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyD7E27dTzpP48muPwSt-hVSNvPai5SHryU",
+      authDomain: "p2plending-c864a.firebaseapp.com",
+      projectId: "p2plending-c864a",
+      storageBucket: "p2plending-c864a.appspot.com",
+      messagingSenderId: "916198463762",
+      appId: "1:916198463762:web:de2cf6383ff18d456dbbcb",
+      measurementId: "G-SHSBBCS0W7"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+
     const contractAddress = "0x608578ad799148D5009D66800BA4EB3eD361943D";
-    const abi =[
+    const abi = [
 	{
 		"inputs": [
 			{
@@ -300,17 +313,22 @@
     });
 
     async function submitDocument() {
-      const phone = document.getElementById("phone").value;
-      const file = document.getElementById("doc").files[0];
-      const arrayBuffer = await file.arrayBuffer();
-      const hashBuffer = await crypto.subtle.digest("SHA-256", arrayBuffer);
-      const hashHex = [...new Uint8Array(hashBuffer)].map(b => b.toString(16).padStart(2, '0')).join('');
-
       try {
+        const phone = document.getElementById("phone").value;
+        const file = document.getElementById("doc").files[0];
+        if (!file || !phone) {
+          document.getElementById("error").innerText = "File or phone missing.";
+          return;
+        }
+        const buffer = await file.arrayBuffer();
+        const hashBuffer = await crypto.subtle.digest("SHA-256", buffer);
+        const hashHex = [...new Uint8Array(hashBuffer)].map(b => b.toString(16).padStart(2, '0')).join('');
+
         await contract.methods.submitDocument(hashHex, phone).send({ from: accounts[0] });
         alert("Document submitted successfully");
       } catch (e) {
         document.getElementById("error").innerText = "Failed to submit document.";
+        console.error(e);
       }
     }
 
@@ -328,6 +346,7 @@
         alert("Loan offered successfully");
       } catch (e) {
         document.getElementById("error").innerText = "Offer Loan failed.";
+        console.error(e);
       }
     }
 
@@ -337,6 +356,7 @@
         alert("Loan taken successfully");
       } catch (e) {
         document.getElementById("error").innerText = "Take Loan failed.";
+        console.error(e);
       }
     }
 
@@ -349,6 +369,7 @@
         alert("Loan repaid successfully");
       } catch (e) {
         document.getElementById("error").innerText = "Repay Loan failed.";
+        console.error(e);
       }
     }
   </script>
