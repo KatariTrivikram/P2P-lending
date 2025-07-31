@@ -3,12 +3,63 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Document-Based P2P Lending</title>
+  <title>Decentralized Document Loan Platform</title>
   <script src="https://cdn.jsdelivr.net/npm/ethers/dist/ethers.min.js"></script>
-  <script>
-    let contract;
-    let signer;
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f0f0;
+      padding: 20px;
+    }
+    .section {
+      background: #fff;
+      padding: 20px;
+      margin-bottom: 20px;
+      border-radius: 12px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      max-width: 600px;
+      margin: auto;
+    }
+    h2 {
+      text-align: center;
+    }
+    input, button {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+    button {
+      background-color: #007bff;
+      color: white;
+      font-weight: bold;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+  </style>
+</head>
+<body onload="connectWallet()">
 
+  <div class="section">
+    <h2>Borrower Panel</h2>
+    <input type="file" id="borrowDoc" />
+    <input type="text" id="phoneNumber" placeholder="Enter phone number" />
+    <button onclick="submitDocument()">Submit Document & Phone</button>
+    <button onclick="takeLoan()">Take Loan</button>
+    <button onclick="repayLoan()">Repay Loan</button>
+  </div>
+
+  <div class="section">
+    <h2>Lender Panel</h2>
+    <input type="number" id="interestRate" placeholder="Interest Rate (%)" />
+    <input type="text" id="loanAmount" placeholder="Loan Amount (ETH)" />
+    <input type="file" id="lenderDoc" />
+    <button onclick="offerLoan()">Offer Loan</button>
+  </div>
+
+  <script>
     const CONTRACT_ADDRESS = "0x18e0A478Ce0f0B182258D0Ba2dDa62b8f3eEC7C3";
     const CONTRACT_ABI = [
 	{
@@ -205,6 +256,8 @@
 	}
 ];
 
+    let signer, contract;
+
     async function connectWallet() {
       if (window.ethereum) {
         const provider = new ethers.providers.Web3Provider(window.ethereum);
@@ -213,95 +266,55 @@
         contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
         console.log("Wallet connected");
       } else {
-        alert("Install MetaMask!");
+        alert("Please install MetaMask.");
       }
     }
 
     async function getFileHash(file) {
-      const arrayBuffer = await file.arrayBuffer();
-      const hashBuffer = await crypto.subtle.digest("SHA-256", arrayBuffer);
-      return "0x" + [...new Uint8Array(hashBuffer)].map(x => x.toString(16).padStart(2, '0')).join('');
+      const buffer = await file.arrayBuffer();
+      const hashBuffer = await crypto.subtle.digest("SHA-256", buffer);
+      return "0x" + [...new Uint8Array(hashBuffer)].map(b => b.toString(16).padStart(2, "0")).join("");
+    }
+
+    async function submitDocument() {
+      const file = document.getElementById("borrowDoc").files[0];
+      const phone = document.getElementById("phoneNumber").value;
+      if (!file || !phone) {
+        alert("Please upload a document and enter phone number.");
+        return;
+      }
+      const hash = await getFileHash(file);
+      const tx = await contract.submitDocument(hash, phone);
+      await tx.wait();
+      alert("Document & phone submitted successfully.");
     }
 
     async function offerLoan() {
-      try {
-        const docInput = document.getElementById("lenderDoc").files[0];
-        const interest = document.getElementById("interestRate").value;
-        const amount = document.getElementById("loanAmount").value;
-
-        if (!docInput || !interest || !amount) {
-          alert("Please fill all lender fields.");
-          return;
-        }
-
-        const docHash = await getFileHash(docInput);
-        console.log("📄 Document Hash:", docHash);
-
-        const ethValue = ethers.utils.parseEther(amount);
-        const tx = await contract.offerLoan(interest, docHash, { value: ethValue });
-        await tx.wait();
-
-        alert("✅ Loan offered successfully!");
-      } catch (err) {
-        console.error("❌ Offer Loan Error:", err);
-        alert("❌ Failed to offer loan: " + (err?.reason || err?.message));
+      const rate = document.getElementById("interestRate").value;
+      const amount = document.getElementById("loanAmount").value;
+      const file = document.getElementById("lenderDoc").files[0];
+      if (!file || !rate || !amount) {
+        alert("Fill all lender details.");
+        return;
       }
+      const hash = await getFileHash(file);
+      const value = ethers.utils.parseEther(amount);
+      const tx = await contract.offerLoan(rate, hash, { value });
+      await tx.wait();
+      alert("Loan offered!");
+    }
+
+    async function takeLoan() {
+      const tx = await contract.takeLoan();
+      await tx.wait();
+      alert("Loan taken successfully.");
+    }
+
+    async function repayLoan() {
+      const tx = await contract.repayLoan({ value: ethers.utils.parseEther("0.1") }); // example repayment
+      await tx.wait();
+      alert("Loan repaid.");
     }
   </script>
-  <style>
-    body {
-      font-family: sans-serif;
-      background: linear-gradient(to right, #d3cce3, #e9e4f0);
-      padding: 20px;
-    }
-    .card {
-      background: white;
-      border-radius: 10px;
-      padding: 20px;
-      max-width: 500px;
-      margin: 0 auto;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-    .form-group {
-      margin-bottom: 15px;
-    }
-    label {
-      display: block;
-      margin-bottom: 5px;
-    }
-    input, button {
-      width: 100%;
-      padding: 10px;
-      border-radius: 5px;
-      border: 1px solid #ccc;
-    }
-    button {
-      background-color: #4CAF50;
-      color: white;
-      font-weight: bold;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: #45a049;
-    }
-  </style>
-</head>
-<body onload="connectWallet()">
-  <div class="card">
-    <h2>Offer a Loan (Lender)</h2>
-    <div class="form-group">
-      <label for="lenderDoc">Upload Document</label>
-      <input type="file" id="lenderDoc" />
-    </div>
-    <div class="form-group">
-      <label for="interestRate">Interest Rate (%)</label>
-      <input type="number" id="interestRate" />
-    </div>
-    <div class="form-group">
-      <label for="loanAmount">Loan Amount (in ETH)</label>
-      <input type="text" id="loanAmount" />
-    </div>
-    <button onclick="offerLoan()">Offer Loan</button>
-  </div>
 </body>
 </html>
