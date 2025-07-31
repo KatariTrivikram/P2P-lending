@@ -1,149 +1,79 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Decentralized Lending DApp</title>
-  <script src="https://cdn.jsdelivr.net/npm/web3@1.8.2/dist/web3.min.js"></script>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f9fafb;
-      margin: 0;
-      padding: 20px;
-    }
-
-    h2, h3 {
-      color: #111827;
-    }
-
-    .container {
-      max-width: 720px;
-      margin: auto;
-      background: white;
-      border-radius: 12px;
-      padding: 24px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    }
-
-    label {
-      font-weight: 600;
-      margin-top: 12px;
-      display: block;
-    }
-
-    input[type="text"],
-    input[type="number"],
-    input[type="file"] {
-      width: 100%;
-      padding: 10px;
-      margin-top: 6px;
-      margin-bottom: 16px;
-      border: 1px solid #d1d5db;
-      border-radius: 6px;
-      font-size: 15px;
-    }
-
-    button {
-      background-color: #3b82f6;
-      color: white;
-      border: none;
-      padding: 10px 20px;
-      border-radius: 8px;
-      font-size: 15px;
-      cursor: pointer;
-      margin-top: 8px;
-    }
-
-    button:hover {
-      background-color: #2563eb;
-    }
-
-    #walletAddress {
-      font-size: 15px;
-      color: #10b981;
-      margin-top: 8px;
-    }
-
-    .section {
-      border-top: 1px solid #e5e7eb;
-      margin-top: 28px;
-      padding-top: 24px;
-    }
-
-    .otp-box {
-      display: flex;
-      gap: 12px;
-    }
-
-    .otp-box input {
-      width: 50px;
-      text-align: center;
-      font-size: 18px;
-      padding: 10px;
-      border-radius: 6px;
-      border: 1px solid #d1d5db;
-    }
-  </style>
+    <title>Decentralized Lending DApp</title>
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f7f2f8;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0px 4px 12px rgba(0,0,0,0.1);
+        }
+        h1, h2 {
+            color: #5d3a9b;
+        }
+        input, button {
+            padding: 10px;
+            margin: 10px 0;
+            width: 100%;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+        }
+        button {
+            background-color: #5d3a9b;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #452a74;
+        }
+        .section {
+            margin-top: 30px;
+        }
+        .connected {
+            color: green;
+        }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <h2>🔗 Decentralized P2P Lending Platform</h2>
+<div class="container">
+    <h1>🔗 Decentralized Lending Platform</h1>
+
     <button onclick="connectWallet()">Connect Wallet</button>
-    <div id="walletAddress"></div>
+    <p id="walletAddress"></p>
 
     <div class="section">
-      <h3>👨‍💼 Lender Panel</h3>
-      <label>Loan Amount (ETH)</label>
-      <input type="number" id="loanAmount" step="0.01">
-
-      <label>Interest Rate (%)</label>
-      <input type="number" id="interestRate">
-
-      <label>Document Hash (provided by borrower)</label>
-      <input type="text" id="docHash" placeholder="0x...">
-
-      <button onclick="offerLoan()">Offer Loan</button>
+        <h2>🧔‍♂️ Lender Panel</h2>
+        <input id="loanAmount" placeholder="Loan Amount (ETH)">
+        <input id="interestRate" placeholder="Interest Rate (%)">
+        <input id="documentHash" placeholder="Document Hash (provided by borrower)">
+        <button onclick="offerLoan()">Offer Loan</button>
     </div>
 
     <div class="section">
-      <h3>📤 Borrower Panel</h3>
-      <label>Upload Document</label>
-      <input type="file" id="borrowerDoc" onchange="handleFileHash()">
-
-      <label>Phone Number</label>
-      <input type="text" id="phoneNumber">
-
-      <button onclick="submitDocument()">Submit Document & Phone</button>
-
-      <label>Enter OTP (Simulated)</label>
-      <div class="otp-box">
-        <input type="text" maxlength="1">
-        <input type="text" maxlength="1">
-        <input type="text" maxlength="1">
-        <input type="text" maxlength="1">
-      </div>
-      <button onclick="verifyOTP()">Verify OTP</button>
-
-      <button onclick="takeLoan()">Take Loan</button>
+        <h2>🧑‍\U0001F4BC Borrower Panel</h2>
+        <input type="file" onchange="handleFileUpload(event)">
+        <input id="phoneNumber" placeholder="Phone Number">
+        <button onclick="submitDocument()">Submit Document</button>
+        <button onclick="verifyOTP()">Verify OTP</button>
+        <button onclick="takeLoan()">Take Loan</button>
+        <button onclick="repayLoan()">Repay Loan</button>
     </div>
+</div>
 
-    <div class="section">
-      <h3>💰 Repay Loan</h3>
-      <label>Repay Amount (ETH)</label>
-      <input type="number" id="repayAmount" step="0.01">
-
-      <button onclick="repayLoan()">Repay Loan</button>
-    </div>
-  </div>
-
-  <script>
-    let web3;
-    let account;
-    let contract;
-
-    const contractAddress = "0x608578ad799148D5009D66800BA4EB3eD361943D";
-    const abi =[
+<script>
+    let provider, signer, contract;
+    const contractAddress = "0x608578ad799148D5009D66800BA4EB3eD361943D"; 
+    const abi = [
 	{
 		"inputs": [
 			{
@@ -336,82 +266,103 @@
 		"stateMutability": "view",
 		"type": "function"
 	}
-]; // Use your ABI here (same as previously pasted)
+];
 
     async function connectWallet() {
-      if (window.ethereum) {
-        web3 = new Web3(window.ethereum);
-        try {
-          const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-          account = accounts[0];
-          contract = new web3.eth.Contract(abi, contractAddress);
-          document.getElementById("walletAddress").innerText = "Connected: " + account;
-        } catch (err) {
-          alert("Connection failed: " + err.message);
+        if (window.ethereum) {
+            try {
+                await window.ethereum.request({ method: "eth_requestAccounts" });
+                provider = new ethers.providers.Web3Provider(window.ethereum);
+                signer = provider.getSigner();
+                contract = new ethers.Contract(contractAddress, abi, signer);
+                document.getElementById("walletAddress").innerText = "Connected: " + await signer.getAddress();
+            } catch (err) {
+                alert("Wallet connection failed.");
+            }
+        } else {
+            alert("Please install MetaMask.");
         }
-      } else {
-        alert("Please install MetaMask.");
-      }
+    }
+
+    function isValidHash(hash) {
+        return /^0x([A-Fa-f0-9]{64})$/.test(hash);
     }
 
     async function offerLoan() {
-      const amount = document.getElementById("loanAmount").value;
-      const interest = document.getElementById("interestRate").value;
-      const docHash = document.getElementById("docHash").value;
+        const amount = document.getElementById("loanAmount").value;
+        const interest = document.getElementById("interestRate").value;
+        const hash = document.getElementById("documentHash").value;
 
-      try {
-        await contract.methods.offerLoan(interest, docHash)
-          .send({ from: account, value: web3.utils.toWei(amount, "ether") });
-        alert("Loan offered successfully!");
-      } catch (err) {
-        alert("Offer failed: " + err.message);
-      }
+        if (!isValidHash(hash)) {
+            alert("Invalid document hash. Must be 0x + 64 hex chars.");
+            return;
+        }
+
+        try {
+            const tx = await contract.offerLoan(
+                ethers.utils.parseEther(amount),
+                interest,
+                hash
+            );
+            await tx.wait();
+            alert("Loan offered successfully!");
+        } catch (err) {
+            alert("Offer failed: " + err.message);
+        }
+    }
+
+    async function handleFileUpload(event) {
+        const file = event.target.files[0];
+        const arrayBuffer = await file.arrayBuffer();
+        const hashBuffer = await crypto.subtle.digest('SHA-256', arrayBuffer);
+        const hashHex = '0x' + Array.from(new Uint8Array(hashBuffer))
+            .map(b => b.toString(16).padStart(2, '0'))
+            .join('');
+        document.getElementById("documentHash").value = hashHex;
     }
 
     async function submitDocument() {
-      const phone = document.getElementById("phoneNumber").value;
-      const fileInput = document.getElementById("borrowerDoc");
-      const file = fileInput.files[0];
-      if (!file) return alert("Please upload a document.");
+        const hash = document.getElementById("documentHash").value;
+        const phone = document.getElementById("phoneNumber").value;
 
-      const reader = new FileReader();
-      reader.onloadend = async function () {
-        const hash = web3.utils.keccak256(reader.result);
-        try {
-          await contract.methods.submitDocument(hash, phone).send({ from: account });
-          alert("Document submitted!");
-        } catch (err) {
-          alert("Submit failed: " + err.message);
+        if (!isValidHash(hash) || phone.length < 10) {
+            alert("Invalid hash or phone number.");
+            return;
         }
-      };
-      reader.readAsArrayBuffer(file);
+
+        try {
+            const tx = await contract.submitDocument(hash, phone);
+            await tx.wait();
+            alert("Document submitted.");
+        } catch (err) {
+            alert("Submission failed: " + err.message);
+        }
     }
 
     function verifyOTP() {
-      alert("OTP Verified (Simulated)");
+        // Mock OTP flow for now
+        alert("OTP Verified");
     }
 
     async function takeLoan() {
-      try {
-        await contract.methods.takeLoan().send({ from: account });
-        alert("Loan taken!");
-      } catch (err) {
-        alert("Take Loan failed: " + err.message);
-      }
+        try {
+            const tx = await contract.takeLoan();
+            await tx.wait();
+            alert("Loan taken.");
+        } catch (err) {
+            alert("Take loan failed: " + err.message);
+        }
     }
 
     async function repayLoan() {
-      const repayAmount = document.getElementById("repayAmount").value;
-      try {
-        await contract.methods.repayLoan().send({
-          from: account,
-          value: web3.utils.toWei(repayAmount, "ether")
-        });
-        alert("Loan repaid!");
-      } catch (err) {
-        alert("Repayment failed: " + err.message);
-      }
+        try {
+            const tx = await contract.repayLoan({ value: ethers.utils.parseEther("0.01") });
+            await tx.wait();
+            alert("Loan repaid.");
+        } catch (err) {
+            alert("Repayment failed: " + err.message);
+        }
     }
-  </script>
+</script>
 </body>
 </html>
