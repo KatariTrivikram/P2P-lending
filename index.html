@@ -1,80 +1,60 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Document-Based P2P Lending DApp</title>
-  <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f3f4f6;
-      color: #111827;
-      padding: 40px;
-    }
-
-    h2 {
-      color: #1f2937;
-      border-bottom: 2px solid #9ca3af;
-      padding-bottom: 10px;
-    }
-
-    .section {
-      background: white;
-      padding: 20px;
-      margin-bottom: 30px;
-      border-radius: 10px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    }
-
-    input, button {
-      padding: 10px;
-      margin-top: 10px;
-      margin-bottom: 10px;
-      border-radius: 8px;
-      border: 1px solid #d1d5db;
-      width: 100%;
-      box-sizing: border-box;
-    }
-
-    button {
-      background-color: #2563eb;
-      color: white;
-      font-weight: bold;
-      cursor: pointer;
-    }
-
-    button:hover {
-      background-color: #1d4ed8;
-    }
-
-    #status {
-      margin-top: 20px;
-      font-weight: bold;
-      color: green;
-    }
-  </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Document-backed P2P Lending</title>
+  <script src="https://cdn.jsdelivr.net/npm/web3@1.8.2/dist/web3.min.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet"/>
 </head>
-<body>
+<body class="bg-gray-100 min-h-screen">
+  <div class="max-w-2xl mx-auto p-6 bg-white shadow-2xl rounded-xl mt-10">
+    <h1 class="text-3xl font-bold mb-6 text-center text-purple-700">📄 Document-Backed P2P Lending DApp</h1>
 
-  <h2>Lender Section</h2>
-  <div class="section">
-    <input type="number" id="interestRate" placeholder="Interest Rate (%) per month" />
-    <input type="file" id="docUploadLender" />
-    <button onclick="uploadAndOfferLoan()">Offer Loan</button>
+    <div class="space-y-6">
+      <!-- Offer Loan -->
+      <div>
+        <h2 class="text-xl font-semibold text-green-600">1️⃣ Offer Loan</h2>
+        <input type="number" id="interestRate" class="w-full p-2 border rounded my-2" placeholder="Interest Rate (% per month)" />
+        <input type="text" id="docHash" class="w-full p-2 border rounded my-2" placeholder="Document Hash" />
+        <input type="number" id="loanAmount" class="w-full p-2 border rounded my-2" placeholder="Loan Amount (in ETH)" />
+        <button onclick="offerLoan()" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 w-full">Offer Loan</button>
+      </div>
+
+      <!-- Submit Document -->
+      <div>
+        <h2 class="text-xl font-semibold text-blue-600">2️⃣ Submit Document</h2>
+        <input type="text" id="borrowerDocHash" class="w-full p-2 border rounded my-2" placeholder="Enter Your Document Hash" />
+        <button onclick="submitDocument()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 w-full">Submit Document</button>
+      </div>
+
+      <!-- Take Loan -->
+      <div>
+        <h2 class="text-xl font-semibold text-yellow-600">3️⃣ Take Loan</h2>
+        <button onclick="takeLoan()" class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 w-full">Take Loan</button>
+      </div>
+
+      <!-- Repay Loan -->
+      <div>
+        <h2 class="text-xl font-semibold text-red-600">4️⃣ Repay Loan</h2>
+        <!-- Removed manual repay input -->
+        <button onclick="repayLoan()" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 w-full">Repay Automatically</button>
+      </div>
+
+      <!-- Reset -->
+      <div>
+        <h2 class="text-xl font-semibold text-gray-600">♻️ Reset</h2>
+        <button onclick="resetLoan()" class="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-800 w-full">Reset Loan</button>
+      </div>
+
+      <!-- Status -->
+      <div id="status" class="text-center mt-4 text-purple-700 font-medium"></div>
+    </div>
   </div>
-
-  <h2>Borrower Section</h2>
-  <div class="section">
-    <input type="file" id="docUploadBorrower" />
-    <button onclick="uploadAndSubmitDoc()">Submit Document</button>
-    <button onclick="takeLoan()">Take Loan</button>
-    <button onclick="repayLoan()">Repay Loan</button>
-  </div>
-
-  <div id="status"></div>
 
   <script>
     const contractAddress = "0xC2e0620752E4115cA679d71Ad2c9ee63f2d046Fc";
-    const contractABI = [
+    const abi = [
 	{
 		"inputs": [
 			{
@@ -264,103 +244,77 @@
 	}
 ];
 
-    let web3;
-    let contract;
+    let web3, contract;
 
     async function initWeb3() {
       if (window.ethereum) {
         web3 = new Web3(window.ethereum);
-        await window.ethereum.request({ method: 'eth_requestAccounts' });
-        contract = new web3.eth.Contract(contractABI, contractAddress);
+        await window.ethereum.enable();
+        contract = new web3.eth.Contract(abi, contractAddress);
       } else {
         alert("Please install MetaMask to use this DApp.");
       }
     }
 
-    async function hashFile(file) {
-      const buffer = await file.arrayBuffer();
-      const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
-      const hashArray = Array.from(new Uint8Array(hashBuffer));
-      const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-      return '0x' + hashHex;
-    }
+    initWeb3();
 
-    async function uploadAndOfferLoan() {
-      const fileInput = document.getElementById("docUploadLender");
+    async function offerLoan() {
+      const accounts = await web3.eth.getAccounts();
       const interestRate = document.getElementById("interestRate").value;
-
-      if (fileInput.files.length === 0 || !interestRate) {
-        alert("Please upload a document and enter interest rate.");
-        return;
-      }
-
-      const file = fileInput.files[0];
-      const hash = await hashFile(file);
-
-      const accounts = await web3.eth.getAccounts();
-      const loanAmount = web3.utils.toWei("0.01", "ether");
+      const docHash = document.getElementById("docHash").value;
+      const loanAmount = document.getElementById("loanAmount").value;
 
       try {
-        await contract.methods.offerLoan(interestRate, hash).send({
+        await contract.methods.offerLoan(interestRate, docHash).send({
           from: accounts[0],
-          value: loanAmount
+          value: web3.utils.toWei(loanAmount, "ether")
         });
-        document.getElementById("status").innerText = "Loan offered successfully.";
-      } catch (e) {
+        document.getElementById("status").innerText = "Loan offered successfully!";
+      } catch (err) {
         document.getElementById("status").innerText = "Failed to offer loan.";
+        console.error(err);
       }
     }
 
-    async function uploadAndSubmitDoc() {
-      const fileInput = document.getElementById("docUploadBorrower");
-
-      if (fileInput.files.length === 0) {
-        alert("Please upload your document.");
-        return;
-      }
-
-      const file = fileInput.files[0];
-      const hash = await hashFile(file);
-
+    async function submitDocument() {
       const accounts = await web3.eth.getAccounts();
+      const docHash = document.getElementById("borrowerDocHash").value;
 
       try {
-        await contract.methods.submitDocument(hash).send({ from: accounts[0] });
-        document.getElementById("status").innerText = "Document submitted successfully.";
-      } catch (e) {
+        await contract.methods.submitDocument(docHash).send({ from: accounts[0] });
+        document.getElementById("status").innerText = "Document submitted successfully!";
+      } catch (err) {
         document.getElementById("status").innerText = "Failed to submit document.";
+        console.error(err);
       }
     }
 
     async function takeLoan() {
       const accounts = await web3.eth.getAccounts();
+
       try {
         await contract.methods.takeLoan().send({ from: accounts[0] });
-        document.getElementById("status").innerText = "Loan taken successfully.";
-      } catch (e) {
+        document.getElementById("status").innerText = "Loan taken successfully!";
+      } catch (err) {
         document.getElementById("status").innerText = "Failed to take loan.";
+        console.error(err);
       }
     }
 
-    // ✅ UPDATED REPAY FUNCTION (Auto Calculate + Send)
+    // ✅ Updated repayLoan() to auto-calculate repayment
     async function repayLoan() {
+      const accounts = await web3.eth.getAccounts();
+
       try {
-        const accounts = await web3.eth.getAccounts();
-        const borrowerAddress = await contract.methods.borrower().call();
+        const loanAmount = await contract.methods.loanAmount().call();
+        const interestRate = await contract.methods.interestRate().call();
+        const loanStartTime = await contract.methods.loanStartTime().call();
 
-        if (accounts[0].toLowerCase() !== borrowerAddress.toLowerCase()) {
-          document.getElementById("status").innerText = "Only borrower can repay the loan.";
-          return;
-        }
+        const currentTime = Math.floor(Date.now() / 1000);
+        const monthsElapsed = Math.floor((currentTime - loanStartTime) / (30 * 24 * 60 * 60)) + 1;
 
-        const loanAmount = BigInt(await contract.methods.loanAmount().call());
-        const interestRate = BigInt(await contract.methods.interestRate().call());
-        const loanStartTime = BigInt(await contract.methods.loanStartTime().call());
-
-        const now = BigInt(Math.floor(Date.now() / 1000));
-        const monthsElapsed = (now - loanStartTime) / BigInt(30 * 24 * 60 * 60);
-        const interest = (loanAmount * interestRate * (monthsElapsed + BigInt(1))) / BigInt(100);
-        const totalDue = loanAmount + interest;
+        const totalInterest = BigInt(loanAmount) * BigInt(interestRate) * BigInt(monthsElapsed) / 100n;
+        const totalDue = BigInt(loanAmount) + totalInterest;
 
         await contract.methods.repayLoan().send({
           from: accounts[0],
@@ -368,13 +322,23 @@
         });
 
         document.getElementById("status").innerText = "Loan repaid successfully!";
-      } catch (error) {
-        console.error("Repayment failed:", error);
+      } catch (err) {
         document.getElementById("status").innerText = "Failed to repay loan.";
+        console.error(err);
       }
     }
 
-    window.onload = initWeb3;
+    async function resetLoan() {
+      const accounts = await web3.eth.getAccounts();
+
+      try {
+        await contract.methods.resetLoan().send({ from: accounts[0] });
+        document.getElementById("status").innerText = "Loan reset successfully!";
+      } catch (err) {
+        document.getElementById("status").innerText = "Failed to reset loan.";
+        console.error(err);
+      }
+    }
   </script>
 </body>
 </html>
