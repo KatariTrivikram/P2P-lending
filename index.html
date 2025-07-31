@@ -77,7 +77,6 @@
     <h2>Lender Panel</h2>
     <input type="number" id="interestRate" placeholder="Interest Rate (%)" />
     <input type="text" id="loanAmount" placeholder="Loan Amount (ETH)" />
-    <input type="file" id="lenderDoc" />
     <button onclick="offerLoan()">Offer Loan</button>
   </div>
 
@@ -92,201 +91,50 @@
   </div>
 
   <script>
-    const CONTRACT_ADDRESS = "0x18e0A478Ce0f0B182258D0Ba2dDa62b8f3eEC7C3";
+    const CONTRACT_ADDRESS = "0x492B1291DbF8a8E44C26a9495A954B625354338F";
     const CONTRACT_ABI = [
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "_interestRate",
-				"type": "uint256"
-			},
-			{
-				"internalType": "bytes32",
-				"name": "_docHash",
-				"type": "bytes32"
-			}
-		],
-		"name": "offerLoan",
-		"outputs": [],
-		"stateMutability": "payable",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "repayLoan",
-		"outputs": [],
-		"stateMutability": "payable",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "resetLoan",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "bytes32",
-				"name": "_userDocHash",
-				"type": "bytes32"
-			},
-			{
-				"internalType": "string",
-				"name": "_phone",
-				"type": "string"
-			}
-		],
-		"name": "submitDocument",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "takeLoan",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"stateMutability": "nonpayable",
-		"type": "constructor"
-	},
-	{
-		"inputs": [],
-		"name": "borrower",
-		"outputs": [
-			{
-				"internalType": "address payable",
-				"name": "",
-				"type": "address"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "borrowerPhone",
-		"outputs": [
-			{
-				"internalType": "string",
-				"name": "",
-				"type": "string"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "docSubmitted",
-		"outputs": [
-			{
-				"internalType": "bool",
-				"name": "",
-				"type": "bool"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "documentHash",
-		"outputs": [
-			{
-				"internalType": "bytes32",
-				"name": "",
-				"type": "bytes32"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "interestRate",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "lender",
-		"outputs": [
-			{
-				"internalType": "address payable",
-				"name": "",
-				"type": "address"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "loanAmount",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "loanOffered",
-		"outputs": [
-			{
-				"internalType": "bool",
-				"name": "",
-				"type": "bool"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "loanRepaid",
-		"outputs": [
-			{
-				"internalType": "bool",
-				"name": "",
-				"type": "bool"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "loanTaken",
-		"outputs": [
-			{
-				"internalType": "bool",
-				"name": "",
-				"type": "bool"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	}
-];
+      {
+        "inputs": [
+          { "internalType": "uint256", "name": "_interestRate", "type": "uint256" },
+          { "internalType": "bytes32", "name": "_docHash", "type": "bytes32" }
+        ],
+        "name": "offerLoan",
+        "outputs": [],
+        "stateMutability": "payable",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          { "internalType": "bytes32", "name": "_docHash", "type": "bytes32" },
+          { "internalType": "string", "name": "_phone", "type": "string" }
+        ],
+        "name": "submitDocument",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "takeLoan",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "repayLoan",
+        "outputs": [],
+        "stateMutability": "payable",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "resetLoan",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      }
+    ];
 
     let signer, contract;
 
@@ -324,7 +172,7 @@
         return;
       }
       const hash = await getFileHash(file);
-      const tx = await contract.submitDocument(hash, phone); // Modify if contract requires OTP
+      const tx = await contract.submitDocument(hash, phone);
       await tx.wait();
       alert("Document, phone and OTP submitted successfully.");
     }
@@ -332,14 +180,13 @@
     async function offerLoan() {
       const rate = document.getElementById("interestRate").value;
       const amount = document.getElementById("loanAmount").value;
-      const file = document.getElementById("lenderDoc").files[0];
-      if (!file || !rate || !amount) {
+      if (!rate || !amount) {
         alert("Fill all lender details.");
         return;
       }
-      const hash = await getFileHash(file);
+      const dummyHash = ethers.utils.formatBytes32String("placeholder");
       const value = ethers.utils.parseEther(amount);
-      const tx = await contract.offerLoan(rate, hash, { value });
+      const tx = await contract.offerLoan(rate, dummyHash, { value });
       await tx.wait();
       alert("Loan offered!");
     }
