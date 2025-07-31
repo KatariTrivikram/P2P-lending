@@ -2,188 +2,24 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Document-backed Loan DApp</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Doc-Based Loan DApp</title>
   <script src="https://cdn.jsdelivr.net/npm/ethers@6.6.2/dist/ethers.umd.min.js"></script>
   <script>
-    let provider, signer, contract;
+    let provider, signer, contract, currentAccount;
 
-    const contractAddress = "0x492B1291DbF8a8E44C26a9495A954B625354338F";
-    const abi = [
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "_interestRate",
-				"type": "uint256"
-			},
-			{
-				"internalType": "string",
-				"name": "docHash",
-				"type": "string"
-			}
-		],
-		"name": "offerLoan",
-		"outputs": [],
-		"stateMutability": "payable",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "repayLoan",
-		"outputs": [],
-		"stateMutability": "payable",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "resetLoan",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "string",
-				"name": "userDocHash",
-				"type": "string"
-			}
-		],
-		"name": "submitDocument",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "takeLoan",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"stateMutability": "nonpayable",
-		"type": "constructor"
-	},
-	{
-		"inputs": [],
-		"name": "borrower",
-		"outputs": [
-			{
-				"internalType": "address payable",
-				"name": "",
-				"type": "address"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "documentHash",
-		"outputs": [
-			{
-				"internalType": "bytes32",
-				"name": "",
-				"type": "bytes32"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "interestRate",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "lender",
-		"outputs": [
-			{
-				"internalType": "address payable",
-				"name": "",
-				"type": "address"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "loanAmount",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "loanOffered",
-		"outputs": [
-			{
-				"internalType": "bool",
-				"name": "",
-				"type": "bool"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "loanRepaid",
-		"outputs": [
-			{
-				"internalType": "bool",
-				"name": "",
-				"type": "bool"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "loanTaken",
-		"outputs": [
-			{
-				"internalType": "bool",
-				"name": "",
-				"type": "bool"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	}
-];
+    const contractAddress = "YOUR_CONTRACT_ADDRESS"; // Replace
+    const abi = [/* <-- Insert updated ABI here from contract above */];
+
+    const otpStore = {}; // Temporary OTP store
 
     async function connectWallet() {
-      try {
-        if (!window.ethereum) throw new Error("MetaMask not installed.");
-        provider = new ethers.BrowserProvider(window.ethereum);
-        await provider.send("eth_requestAccounts", []);
-        signer = await provider.getSigner();
-        contract = new ethers.Contract(contractAddress, abi, signer);
-        document.getElementById("walletStatus").innerText = "✅ Wallet Connected";
-      } catch (err) {
-        alert("Wallet connection failed: " + err.message);
-      }
+      provider = new ethers.BrowserProvider(window.ethereum);
+      await provider.send("eth_requestAccounts", []);
+      signer = await provider.getSigner();
+      currentAccount = await signer.getAddress();
+      contract = new ethers.Contract(contractAddress, abi, signer);
+      document.getElementById("walletStatus").innerText = "Wallet Connected: " + currentAccount;
     }
 
     async function hashFile(file) {
@@ -199,29 +35,45 @@
       const amountEth = document.getElementById("loanAmount").value;
 
       if (!file || !interest || !amountEth) return alert("Please fill all fields.");
-
       const docHash = await hashFile(file);
       const tx = await contract.offerLoan(interest, docHash, {
         value: ethers.parseEther(amountEth)
       });
       await tx.wait();
-      alert("✅ Loan Offered Successfully");
+
+      // Simulate sending OTP (use Twilio or Firebase in production)
+      const otp = Math.floor(100000 + Math.random() * 900000).toString();
+      otpStore[docHash] = otp;
+      alert("OTP sent to borrower's phone (simulated): " + otp);
     }
 
     async function submitDocument() {
       const file = document.getElementById("borrowerDoc").files[0];
-      if (!file) return alert("Please upload a document.");
+      const phone = document.getElementById("borrowerPhone").value;
+      if (!file || !phone) return alert("Upload document and enter phone number.");
 
       const docHash = await hashFile(file);
-      const tx = await contract.submitDocument(docHash);
+      const otp = prompt("Enter the OTP you received:");
+
+      if (otp !== otpStore[docHash]) {
+        alert("Invalid OTP. Contact lender.");
+        return;
+      }
+
+      const tx = await contract.submitDocument(docHash, phone);
       await tx.wait();
-      alert("✅ Document Submitted!");
+      alert("Document submitted successfully.");
     }
 
     async function takeLoan() {
-      const tx = await contract.takeLoan();
-      await tx.wait();
-      alert("✅ Loan Taken");
+      try {
+        const tx = await contract.takeLoan();
+        await tx.wait();
+        alert("Loan Taken Successfully.");
+      } catch (err) {
+        alert("Error: " + err.reason);
+        console.error(err);
+      }
     }
 
     async function repayLoan() {
@@ -232,54 +84,58 @@
 
       const tx = await contract.repayLoan({ value: total });
       await tx.wait();
-      alert("✅ Loan Repaid with Interest");
-    }
-
-    async function resetLoan() {
-      const tx = await contract.resetLoan();
-      await tx.wait();
-      alert("🔁 Loan Reset");
+      alert("Loan Repaid.");
     }
   </script>
   <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      background: linear-gradient(to right, #e0eafc, #cfdef3);
+    }
+    h1 {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    .section {
+      border: 2px dashed #ccc;
+      padding: 1.5rem;
+      border-radius: 1rem;
+      background-color: #f9fafb;
+    }
+    input[type="file"]::-webkit-file-upload-button {
+      background: #4f46e5;
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 0.375rem;
+      cursor: pointer;
+    }
+  </style>
 </head>
-<body class="bg-gray-100 p-6 font-sans">
-  <div class="max-w-2xl mx-auto bg-white shadow-lg p-6 rounded-xl space-y-6">
-    <h1 class="text-2xl font-bold text-center">📄 Document-Based Lending DApp</h1>
+<body class="p-6">
+  <div class="max-w-2xl mx-auto bg-white shadow-2xl p-6 rounded-xl space-y-6">
+    <h1 class="text-3xl font-bold text-center text-indigo-700">Document-Based Lending DApp</h1>
+    <button onclick="connectWallet()" class="w-full bg-purple-600 hover:bg-purple-700 text-white py-2 rounded-lg shadow-md transition duration-300">Connect Wallet</button>
+    <p id="walletStatus" class="text-sm text-center text-gray-600">Not connected</p>
 
-    <button onclick="connectWallet()" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded">
-      Connect Wallet
-    </button>
-    <p id="walletStatus" class="text-center text-sm text-gray-500">Not connected</p>
-
-    <div class="border-t pt-4 space-y-4">
-      <h2 class="text-lg font-semibold">👨‍💼 Lender: Offer Loan</h2>
-      <input type="file" id="lenderDoc" class="border p-2 rounded w-full" />
-      <input type="number" placeholder="Interest Rate (%)" id="interestRate" class="border p-2 rounded w-full" />
-      <input type="number" placeholder="Loan Amount in ETH" id="loanAmount" class="border p-2 rounded w-full" />
-      <button onclick="offerLoan()" class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded w-full">
-        Offer Loan
-      </button>
+    <div class="section">
+      <h2 class="text-lg font-semibold text-blue-800 mb-2">💼 Lender: Offer Loan</h2>
+      <input type="file" id="lenderDoc" class="border p-2 rounded-lg w-full mb-2" />
+      <input type="number" id="interestRate" placeholder="Interest Rate (%)" class="border p-2 rounded-lg w-full mb-2" />
+      <input type="number" id="loanAmount" placeholder="Loan Amount (ETH)" class="border p-2 rounded-lg w-full mb-4" />
+      <button onclick="offerLoan()" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg">Offer Loan</button>
     </div>
 
-    <div class="border-t pt-4 space-y-4">
-      <h2 class="text-lg font-semibold">🧑‍💼 Borrower</h2>
-      <input type="file" id="borrowerDoc" class="border p-2 rounded w-full" />
-      <button onclick="submitDocument()" class="bg-yellow-500 hover:bg-yellow-600 text-white py-2 px-4 rounded w-full">
-        Submit Document
-      </button>
-      <button onclick="takeLoan()" class="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded w-full">
-        Take Loan
-      </button>
-      <button onclick="repayLoan()" class="bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded w-full">
-        Repay Loan
-      </button>
+    <div class="section">
+      <h2 class="text-lg font-semibold text-yellow-800 mb-2">📩 Borrower: Submit Document</h2>
+      <input type="file" id="borrowerDoc" class="border p-2 rounded-lg w-full mb-2" />
+      <input type="text" id="borrowerPhone" placeholder="Phone Number" class="border p-2 rounded-lg w-full mb-4" />
+      <button onclick="submitDocument()" class="w-full bg-yellow-500 hover:bg-yellow-600 text-white py-2 rounded-lg">Submit Document</button>
     </div>
 
-    <div class="border-t pt-4">
-      <button onclick="resetLoan()" class="w-full bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded">
-        Reset Loan (Admin Only)
-      </button>
+    <div class="section">
+      <h2 class="text-lg font-semibold text-green-800 mb-2">⚙️ Loan Actions</h2>
+      <button onclick="takeLoan()" class="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg mb-2">Take Loan</button>
+      <button onclick="repayLoan()" class="w-full bg-red-600 hover:bg-red-700 text-white py-2 rounded-lg">Repay Loan</button>
     </div>
   </div>
 </body>
