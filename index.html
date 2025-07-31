@@ -8,90 +8,99 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: #f3f4f6;
+      background: #f9fafb;
       margin: 0;
       padding: 20px;
     }
 
-    h2 {
+    h2, h3 {
       color: #111827;
     }
 
     .container {
-      max-width: 700px;
+      max-width: 720px;
       margin: auto;
       background: white;
-      border-radius: 10px;
-      padding: 20px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     }
 
     label {
       font-weight: 600;
-      margin-top: 10px;
+      margin-top: 12px;
       display: block;
     }
 
-    input {
+    input[type="text"],
+    input[type="number"],
+    input[type="file"] {
       width: 100%;
-      padding: 8px;
-      margin-top: 5px;
-      margin-bottom: 15px;
+      padding: 10px;
+      margin-top: 6px;
+      margin-bottom: 16px;
       border: 1px solid #d1d5db;
-      border-radius: 5px;
+      border-radius: 6px;
+      font-size: 15px;
     }
 
     button {
-      background-color: #2563eb;
+      background-color: #3b82f6;
       color: white;
       border: none;
-      padding: 10px 16px;
-      border-radius: 6px;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 15px;
       cursor: pointer;
-      margin-top: 5px;
+      margin-top: 8px;
     }
 
     button:hover {
-      background-color: #1d4ed8;
+      background-color: #2563eb;
     }
 
     #walletAddress {
-      font-size: 14px;
+      font-size: 15px;
       color: #10b981;
+      margin-top: 8px;
     }
 
     .section {
       border-top: 1px solid #e5e7eb;
-      margin-top: 20px;
-      padding-top: 20px;
+      margin-top: 28px;
+      padding-top: 24px;
     }
 
     .otp-box {
       display: flex;
-      gap: 10px;
+      gap: 12px;
     }
 
     .otp-box input {
-      width: 40px;
+      width: 50px;
       text-align: center;
+      font-size: 18px;
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid #d1d5db;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h2>Decentralized P2P Lending Platform</h2>
-    <button onclick="connectWallet()">🔗 Connect Wallet</button>
+    <h2>🔗 Decentralized P2P Lending Platform</h2>
+    <button onclick="connectWallet()">Connect Wallet</button>
     <div id="walletAddress"></div>
 
     <div class="section">
       <h3>👨‍💼 Lender Panel</h3>
-      <label>Loan Amount (in ETH)</label>
+      <label>Loan Amount (ETH)</label>
       <input type="number" id="loanAmount" step="0.01">
 
       <label>Interest Rate (%)</label>
       <input type="number" id="interestRate">
 
-      <label>Document (borrower will submit their hash, you can set dummy hash for now)</label>
+      <label>Document Hash (provided by borrower)</label>
       <input type="text" id="docHash" placeholder="0x...">
 
       <button onclick="offerLoan()">Offer Loan</button>
@@ -107,7 +116,7 @@
 
       <button onclick="submitDocument()">Submit Document & Phone</button>
 
-      <label>Enter OTP (Demo Only)</label>
+      <label>Enter OTP (Simulated)</label>
       <div class="otp-box">
         <input type="text" maxlength="1">
         <input type="text" maxlength="1">
@@ -121,7 +130,7 @@
 
     <div class="section">
       <h3>💰 Repay Loan</h3>
-      <label>Repay Amount (in ETH)</label>
+      <label>Repay Amount (ETH)</label>
       <input type="number" id="repayAmount" step="0.01">
 
       <button onclick="repayLoan()">Repay Loan</button>
@@ -131,6 +140,8 @@
   <script>
     let web3;
     let account;
+    let contract;
+
     const contractAddress = "0x608578ad799148D5009D66800BA4EB3eD361943D";
     const abi =[
 	{
@@ -325,9 +336,7 @@
 		"stateMutability": "view",
 		"type": "function"
 	}
-];
-
-    const contract = new window.web3?.eth.Contract(abi, contractAddress);
+]; // Use your ABI here (same as previously pasted)
 
     async function connectWallet() {
       if (window.ethereum) {
@@ -335,6 +344,7 @@
         try {
           const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
           account = accounts[0];
+          contract = new web3.eth.Contract(abi, contractAddress);
           document.getElementById("walletAddress").innerText = "Connected: " + account;
         } catch (err) {
           alert("Connection failed: " + err.message);
@@ -362,7 +372,6 @@
       const phone = document.getElementById("phoneNumber").value;
       const fileInput = document.getElementById("borrowerDoc");
       const file = fileInput.files[0];
-
       if (!file) return alert("Please upload a document.");
 
       const reader = new FileReader();
@@ -379,7 +388,6 @@
     }
 
     function verifyOTP() {
-      // Demo only – no real backend
       alert("OTP Verified (Simulated)");
     }
 
