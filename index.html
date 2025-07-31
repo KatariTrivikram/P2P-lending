@@ -1,89 +1,52 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Decentralized P2P Lending</title>
-  <script src="https://cdn.jsdelivr.net/npm/web3@1.8.2/dist/web3.min.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
-  <style>
-    body {
-      font-family: Arial;
-      background: #f1f1f1;
-      padding: 20px;
-    }
-    h2 { color: #2b2b2b; }
-    .card {
-      background: white;
-      border-radius: 10px;
-      padding: 20px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-      margin-bottom: 30px;
-    }
-    input, button {
-      padding: 10px;
-      margin: 5px 0;
-      width: 100%;
-      border-radius: 5px;
-      border: 1px solid #ccc;
-    }
-    button {
-      background: #1976d2;
-      color: white;
-      font-weight: bold;
-      cursor: pointer;
-    }
-    button:hover {
-      background: #125ea7;
-    }
-    .error { color: red; }
-  </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Document-Backed Lending DApp</title>
+  <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.1.1/crypto-js.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
-<body>
+<body class="bg-gray-100 text-gray-800">
+  <div class="max-w-4xl mx-auto p-6">
+    <h1 class="text-3xl font-bold mb-6 text-center">Document-Backed Lending DApp</h1>
 
-  <h2>Connect MetaMask Wallet</h2>
-  <button onclick="connectWallet()">Connect Wallet</button>
-  <p id="wallet-address"></p>
+    <div class="bg-white p-4 rounded shadow mb-8">
+      <h2 class="text-xl font-semibold mb-2">🔌 Wallet Connection</h2>
+      <button id="connectWallet" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Connect Wallet</button>
+      <p id="walletAddress" class="mt-2 text-sm text-green-600"></p>
+    </div>
 
-  <div class="card">
-    <h2>Lender Panel</h2>
-    <input type="number" id="loanAmount" placeholder="Loan Amount in ETH" />
-    <input type="number" id="interestRate" placeholder="Interest Rate (%)" />
-    <button onclick="offerLoan()">Offer Loan</button>
-  </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <!-- Lender Panel -->
+      <div class="bg-white p-6 rounded shadow">
+        <h2 class="text-xl font-semibold mb-4">💰 Lender Panel</h2>
+        <input type="number" id="interestRate" class="w-full p-2 border rounded mb-3" placeholder="Interest Rate (%)" />
+        <input type="number" id="loanAmount" class="w-full p-2 border rounded mb-3" placeholder="Loan Amount (in ETH)" />
+        <input type="file" id="lenderDoc" class="mb-3" />
+        <button onclick="offerLoan()" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Offer Loan</button>
+      </div>
 
-  <div class="card">
-    <h2>Borrower Panel</h2>
-    <input type="text" id="phone" placeholder="Phone Number" />
-    <div id="recaptcha-container"></div>
-    <button onclick="sendOTP()">Send OTP</button>
-    <input type="text" id="otp" placeholder="Enter OTP" />
-    <button onclick="verifyOTP()">Verify OTP</button>
+      <!-- Borrower Panel -->
+      <div class="bg-white p-6 rounded shadow">
+        <h2 class="text-xl font-semibold mb-4">🧾 Borrower Panel</h2>
+        <input type="file" id="borrowerDoc" class="mb-3" />
+        <button onclick="submitDocument()" class="bg-yellow-600 text-white px-4 py-2 rounded hover:bg-yellow-700">Submit Document</button>
+        <button onclick="takeLoan()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 mt-3">Take Loan</button>
+        <input type="number" id="repayAmount" class="w-full p-2 border rounded my-3" placeholder="Repayment Amount (in ETH)" />
+        <button onclick="repayLoan()" class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700">Repay Loan</button>
+      </div>
+    </div>
 
-    <input type="file" id="doc" />
-    <button onclick="submitDocument()">Submit Document</button>
-    <button onclick="takeLoan()">Take Loan</button>
-    <button onclick="repayLoan()">Repay Loan</button>
-    <p id="error" class="error"></p>
+    <p id="status" class="mt-6 text-center font-medium text-red-600"></p>
   </div>
 
   <script>
-    // FIREBASE CONFIG
-    const firebaseConfig = {
-      apiKey: "AIzaSyD7E27dTzpP48muPwSt-hVSNvPai5SHryU",
-      authDomain: "p2plending-c864a.firebaseapp.com",
-      projectId: "p2plending-c864a",
-      storageBucket: "p2plending-c864a.firebasestorage.app",
-      messagingSenderId: "916198463762",
-      appId: "1:916198463762:web:de2cf6383ff18d456dbbcb",
-      measurementId: "G-SHSBBCS0W7"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-
-    // WEB3 CONNECTION
-    let web3, contract, accounts;
-    const contractAddress = "0x608578ad799148D5009D66800BA4EB3eD361943D";
-    const abi =[
+    let web3;
+    let contract;
+    const contractAddress = "0xC2e0620752E4115cA679d71Ad2c9ee63f2d046Fc"; 
+    const abi = [
 	{
 		"inputs": [
 			{
@@ -122,11 +85,6 @@
 				"internalType": "bytes32",
 				"name": "_userDocHash",
 				"type": "bytes32"
-			},
-			{
-				"internalType": "string",
-				"name": "_phone",
-				"type": "string"
 			}
 		],
 		"name": "submitDocument",
@@ -154,19 +112,6 @@
 				"internalType": "address payable",
 				"name": "",
 				"type": "address"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "borrowerPhone",
-		"outputs": [
-			{
-				"internalType": "string",
-				"name": "",
-				"type": "string"
 			}
 		],
 		"stateMutability": "view",
@@ -265,6 +210,19 @@
 	},
 	{
 		"inputs": [],
+		"name": "loanStartTime",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
 		"name": "loanTaken",
 		"outputs": [
 			{
@@ -276,92 +234,80 @@
 		"stateMutability": "view",
 		"type": "function"
 	}
-];
+]; 
 
-    async function connectWallet() {
+    document.getElementById("connectWallet").onclick = async () => {
       if (window.ethereum) {
-        web3 = new Web3(window.ethereum);
-        await window.ethereum.enable();
-        accounts = await web3.eth.getAccounts();
-        contract = new web3.eth.Contract(abi, contractAddress);
-        document.getElementById("wallet-address").innerText = `Connected: ${accounts[0]}`;
+        try {
+          await ethereum.request({ method: "eth_requestAccounts" });
+          web3 = new Web3(window.ethereum);
+          const accounts = await web3.eth.getAccounts();
+          document.getElementById("walletAddress").innerText = `Connected: ${accounts[0]}`;
+          contract = new web3.eth.Contract(abi, contractAddress);
+        } catch (err) {
+          document.getElementById("status").innerText = "Wallet connection failed.";
+        }
       } else {
-        alert("MetaMask not detected");
+        alert("Please install MetaMask.");
       }
+    };
+
+    async function hashFile(fileInputId) {
+      const file = document.getElementById(fileInputId).files[0];
+      const reader = new FileReader();
+      return new Promise((resolve, reject) => {
+        reader.onload = () => {
+          const wordArray = CryptoJS.lib.WordArray.create(reader.result);
+          const hash = CryptoJS.SHA256(wordArray).toString();
+          resolve("0x" + hash);
+        };
+        reader.onerror = reject;
+        reader.readAsArrayBuffer(file);
+      });
     }
 
     async function offerLoan() {
-      const amount = document.getElementById("loanAmount").value;
-      const interest = document.getElementById("interestRate").value;
-      if (!amount || !interest) return alert("Fill all fields");
-
       try {
-        const docHash = await contract.methods.documentHash().call();
-        if (!docHash || docHash === "0x") return alert("Document not submitted yet by borrower");
-        await contract.methods.offerLoan(interest, docHash).send({ from: accounts[0], value: web3.utils.toWei(amount, "ether") });
-        alert("Loan Offered");
-      } catch (e) {
-        console.error(e);
-        alert("Failed to offer loan");
+        const accounts = await web3.eth.getAccounts();
+        const amount = web3.utils.toWei(document.getElementById("loanAmount").value, "ether");
+        const interest = document.getElementById("interestRate").value;
+        const hash = await hashFile("lenderDoc");
+        await contract.methods.offerLoan(interest, hash).send({ from: accounts[0], value: amount });
+        document.getElementById("status").innerText = "Loan offered successfully!";
+      } catch (err) {
+        document.getElementById("status").innerText = "Failed to offer loan.";
       }
     }
 
-    let confirmation;
-    function sendOTP() {
-      const phone = "+91" + document.getElementById("phone").value;
-      window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier("recaptcha-container", { size: "invisible" });
-      auth.signInWithPhoneNumber(phone, window.recaptchaVerifier)
-        .then(confirmResult => {
-          confirmation = confirmResult;
-          alert("OTP sent");
-        })
-        .catch(e => alert("OTP Failed: " + e.message));
-    }
-
-    function verifyOTP() {
-      const otp = document.getElementById("otp").value;
-      confirmation.confirm(otp)
-        .then(() => alert("OTP Verified"))
-        .catch(e => alert("OTP Invalid"));
-    }
-
     async function submitDocument() {
-      const phone = document.getElementById("phone").value;
-      const file = document.getElementById("doc").files[0];
-      if (!file || !phone) return document.getElementById("error").innerText = "Please upload file and enter phone number.";
-
       try {
-        const arrayBuffer = await file.arrayBuffer();
-        const hashBuffer = await crypto.subtle.digest("SHA-256", arrayBuffer);
-        const hashHex = [...new Uint8Array(hashBuffer)].map(b => b.toString(16).padStart(2, '0')).join('');
-        await contract.methods.submitDocument(hashHex, phone).send({ from: accounts[0] });
-        alert("Document submitted");
+        const accounts = await web3.eth.getAccounts();
+        const hash = await hashFile("borrowerDoc");
+        await contract.methods.submitDocument(hash).send({ from: accounts[0] });
+        document.getElementById("status").innerText = "Document submitted successfully!";
       } catch (err) {
-        console.error(err);
-        document.getElementById("error").innerText = "Failed to submit document.";
+        document.getElementById("status").innerText = "Failed to submit document.";
       }
     }
 
     async function takeLoan() {
       try {
+        const accounts = await web3.eth.getAccounts();
         await contract.methods.takeLoan().send({ from: accounts[0] });
-        alert("Loan Taken Successfully");
+        document.getElementById("status").innerText = "Loan taken successfully!";
       } catch (err) {
-        console.error(err);
-        alert("Failed to take loan");
+        document.getElementById("status").innerText = "Failed to take loan.";
       }
     }
 
     async function repayLoan() {
       try {
-        const amount = await contract.methods.loanAmount().call();
-        const interest = await contract.methods.interestRate().call();
-        const repay = parseFloat(amount) + (parseFloat(amount) * parseFloat(interest) / 100);
-        await contract.methods.repayLoan().send({ from: accounts[0], value: repay.toString() });
-        alert("Loan Repaid Successfully");
-      } catch (e) {
-        console.error(e);
-        alert("Repayment failed");
+        const accounts = await web3.eth.getAccounts();
+        const repayValue = web3.utils.toWei(document.getElementById("repayAmount").value, "ether");
+        await contract.methods.repayLoan().send({ from: accounts[0], value: repayValue });
+        document.getElementById("status").innerText = "Loan repaid successfully!";
+      } catch (err) {
+        document.getElementById("status").innerText = "Failed to repay loan.";
       }
     }
   </script>
