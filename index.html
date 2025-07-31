@@ -3,95 +3,31 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Document-backed P2P Lending</title>
+  <title>Document-Backed Loan DApp</title>
   <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
-  <script type="module" src="https://www.gstatic.com/firebasejs/10.5.2/firebase-app.js"></script>
-  <script type="module" src="https://www.gstatic.com/firebasejs/10.5.2/firebase-auth.js"></script>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f4f4f9;
-      color: #333;
-      padding: 30px;
-    }
-    h2 {
-      color: #222;
-    }
-    .section {
-      background: white;
-      border-radius: 16px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-      padding: 24px;
-      margin-bottom: 30px;
-    }
-    input, button {
-      padding: 10px;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      margin-top: 8px;
-      display: block;
-      width: 100%;
-    }
-    button {
-      background: #4caf50;
-      color: white;
-      border: none;
-      cursor: pointer;
-    }
-    button:hover {
-      background: #45a049;
-    }
-  </style>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
-<body>
-  <h2>Document-based Decentralized Lending Platform</h2>
+<body class="bg-gray-100 min-h-screen p-6 font-sans">
+  <div class="max-w-2xl mx-auto bg-white p-6 rounded-2xl shadow-lg">
+    <h1 class="text-2xl font-bold mb-6 text-center text-indigo-700">📄 Document-Backed Loan DApp</h1>
 
-  <div class="section" id="lender">
-    <h3>Lender Section</h3>
-    <input type="number" id="loanAmount" placeholder="Loan Amount (ETH)" />
-    <input type="number" id="interestRate" placeholder="Interest Rate (%)" />
-    <input type="file" id="docUploadLender" />
-    <button onclick="offerLoan()">Offer Loan</button>
+    <div id="account" class="mb-4 text-center text-gray-600">Connecting...</div>
+
+    <div class="grid gap-4">
+      <input id="docFile" type="file" class="p-2 border rounded w-full" />
+      <button onclick="submitDocument()" class="bg-blue-500 text-white rounded p-2 hover:bg-blue-600">Submit Document</button>
+
+      <button onclick="takeLoan()" class="bg-green-500 text-white rounded p-2 hover:bg-green-600">Take Loan</button>
+
+      <button onclick="repayLoan()" class="bg-purple-500 text-white rounded p-2 hover:bg-purple-600">Repay Loan (Auto)</button>
+
+      <div id="loanStatus" class="mt-4 text-gray-700"></div>
+    </div>
   </div>
 
-  <div class="section" id="borrower">
-    <h3>Borrower Section</h3>
-    <input type="text" id="phoneNumber" placeholder="Enter phone number" />
-    <button onclick="sendOTP()">Send OTP</button>
-    <input type="text" id="otp" placeholder="Enter OTP" />
-    <button onclick="verifyOTP()">Verify OTP</button>
-
-    <input type="file" id="docUploadBorrower" />
-    <button onclick="submitDocument()">Submit Document</button>
-    <button onclick="takeLoan()">Take Loan</button>
-    <button onclick="repayLoan()">Repay Loan</button>
-  </div>
-
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.2/firebase-app.js";
-    import { getAuth, RecaptchaVerifier, signInWithPhoneNumber } from "https://www.gstatic.com/firebasejs/10.5.2/firebase-auth.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyD7E27dTzpP48muPwSt-hVSNvPai5SHryU",
-      authDomain: "p2plending-c864a.firebaseapp.com",
-      projectId: "p2plending-c864a",
-      storageBucket: "p2plending-c864a.appspot.com",
-      messagingSenderId: "916198463762",
-      appId: "1:916198463762:web:de2cf6383ff18d456dbbcb",
-      measurementId: "G-SHSBBCS0W7"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    window.recaptchaVerifier = new RecaptchaVerifier(auth, 'phoneNumber', {
-      'size': 'invisible',
-      'callback': () => {}
-    });
-
-    let contract;
-    let userAccount;
-    const contractAddress = "0xC2e0620752E4115cA679d71Ad2c9ee63f2d046Fc";
-    const contractABI = [
+  <script>
+    const contractAddress = "0xC2e0620752E4115cA679d71Ad2c9ee63f2d046Fc"; // Replace with deployed address
+    const abi = [
 	{
 		"inputs": [
 			{
@@ -279,97 +215,95 @@
 		"stateMutability": "view",
 		"type": "function"
 	}
-];
+]; // Replace with your contract ABI
 
-    window.onload = async () => {
+    let web3;
+    let contract;
+    let userAccount;
+
+    window.addEventListener('load', async () => {
       if (window.ethereum) {
-        const web3 = new Web3(window.ethereum);
-        await window.ethereum.enable();
+        web3 = new Web3(window.ethereum);
+        await window.ethereum.request({ method: 'eth_requestAccounts' });
         const accounts = await web3.eth.getAccounts();
         userAccount = accounts[0];
-        contract = new web3.eth.Contract(contractABI, contractAddress);
+        document.getElementById("account").innerText = `Connected: ${userAccount}`;
+
+        contract = new web3.eth.Contract(abi, contractAddress);
+        updateStatus();
       } else {
-        alert("MetaMask not found");
+        alert("Please install MetaMask!");
       }
-    };
+    });
 
-    window.sendOTP = async () => {
-      const phoneNumber = document.getElementById("phoneNumber").value;
-      signInWithPhoneNumber(auth, "+91" + phoneNumber, window.recaptchaVerifier)
-        .then(confirmationResult => {
-          window.confirmationResult = confirmationResult;
-          alert("OTP sent");
-        }).catch(error => {
-          console.error(error);
-        });
-    };
+    async function submitDocument() {
+      const file = document.getElementById("docFile").files[0];
+      if (!file) return alert("Please choose a file");
 
-    window.verifyOTP = async () => {
-      const otp = document.getElementById("otp").value;
-      confirmationResult.confirm(otp).then(() => {
-        alert("Phone verified");
-      }).catch(error => {
-        alert("OTP failed");
-      });
-    };
-
-    async function hashFile(file) {
-      const arrayBuffer = await file.arrayBuffer();
-      const hashBuffer = await crypto.subtle.digest('SHA-256', arrayBuffer);
-      return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+      const reader = new FileReader();
+      reader.onload = async function () {
+        const hash = web3.utils.sha3(reader.result);
+        try {
+          await contract.methods.submitDocument(hash).send({ from: userAccount });
+          alert("Document submitted successfully");
+          updateStatus();
+        } catch (err) {
+          alert("Failed to submit document: " + err.message);
+        }
+      };
+      reader.readAsBinaryString(file);
     }
 
-    window.offerLoan = async () => {
-      const file = document.getElementById("docUploadLender").files[0];
-      if (!file || !contract) return alert("Upload document");
-      const docHash = await hashFile(file);
-      const amount = Web3.utils.toWei(document.getElementById("loanAmount").value, "ether");
-      const interest = document.getElementById("interestRate").value;
-
+    async function takeLoan() {
       try {
-        const tx = await contract.methods.offerLoan(interest, docHash).send({ from: userAccount, value: amount });
-        alert("Loan offered successfully");
+        await contract.methods.takeLoan().send({ from: userAccount });
+        alert("Loan taken successfully!");
+        updateStatus();
       } catch (err) {
-        alert("Offer Loan failed");
+        alert("Error: " + err.message);
       }
-    };
+    }
 
-    window.submitDocument = async () => {
-      const file = document.getElementById("docUploadBorrower").files[0];
-      const phone = document.getElementById("phoneNumber").value;
-      if (!file || !phone) return alert("Upload document and enter phone");
-      const docHash = await hashFile(file);
-
-      try {
-        const tx = await contract.methods.submitDocument(docHash, phone).send({ from: userAccount });
-        alert("Document submitted");
-      } catch (err) {
-        alert("Failed to submit document");
-      }
-    };
-
-    window.takeLoan = async () => {
-      try {
-        const tx = await contract.methods.takeLoan().send({ from: userAccount });
-        alert("Loan taken");
-      } catch (err) {
-        alert("Loan failed");
-      }
-    };
-
-    window.repayLoan = async () => {
+    async function repayLoan() {
       try {
         const loanAmount = await contract.methods.loanAmount().call();
         const interestRate = await contract.methods.interestRate().call();
-        const interest = loanAmount * interestRate / 100;
-        const totalRepay = BigInt(loanAmount) + BigInt(interest);
+        const start = await contract.methods.loanStartTime().call();
 
-        const tx = await contract.methods.repayLoan().send({ from: userAccount, value: totalRepay.toString() });
-        alert("Loan repaid");
+        const now = Math.floor(Date.now() / 1000);
+        const monthsElapsed = Math.floor((now - start) / (30 * 24 * 60 * 60)) + 1;
+        const interest = loanAmount * interestRate * monthsElapsed / 100;
+        const totalDue = Math.floor(Number(loanAmount) + interest);
+
+        await contract.methods.repayLoan().send({ from: userAccount, value: totalDue });
+        alert(`Repayment of ${totalDue} wei successful`);
+        updateStatus();
       } catch (err) {
-        alert("Repayment failed");
+        alert("Repayment failed: " + err.message);
       }
-    };
+    }
+
+    async function updateStatus() {
+      try {
+        const offered = await contract.methods.loanOffered().call();
+        const taken = await contract.methods.loanTaken().call();
+        const repaid = await contract.methods.loanRepaid().call();
+        const doc = await contract.methods.docSubmitted().call();
+        const loanAmt = await contract.methods.loanAmount().call();
+        const interest = await contract.methods.interestRate().call();
+
+        document.getElementById("loanStatus").innerHTML = `
+          <p><strong>Loan Offered:</strong> ${offered}</p>
+          <p><strong>Document Submitted:</strong> ${doc}</p>
+          <p><strong>Loan Taken:</strong> ${taken}</p>
+          <p><strong>Loan Repaid:</strong> ${repaid}</p>
+          <p><strong>Loan Amount:</strong> ${loanAmt} wei</p>
+          <p><strong>Interest Rate:</strong> ${interest}%</p>
+        `;
+      } catch (err) {
+        console.log("Error fetching status", err);
+      }
+    }
   </script>
 </body>
 </html>
