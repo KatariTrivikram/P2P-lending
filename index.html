@@ -24,7 +24,7 @@
       color: #2c3e50;
       margin-bottom: 20px;
     }
-    input, button {
+    input, button, label {
       width: 100%;
       padding: 15px;
       margin: 10px 0;
@@ -75,6 +75,7 @@
 
   <div class="section">
     <h2>Lender Panel</h2>
+    <input type="file" id="lenderDoc" />
     <input type="number" id="interestRate" placeholder="Interest Rate (%)" />
     <input type="text" id="loanAmount" placeholder="Loan Amount (ETH)" />
     <button onclick="offerLoan()">Offer Loan</button>
@@ -163,6 +164,21 @@
       return "0x" + [...new Uint8Array(hashBuffer)].map(b => b.toString(16).padStart(2, "0")).join("");
     }
 
+    async function offerLoan() {
+      const file = document.getElementById("lenderDoc").files[0];
+      const rate = document.getElementById("interestRate").value;
+      const amount = document.getElementById("loanAmount").value;
+      if (!file || !rate || !amount) {
+        alert("Please complete all lender fields.");
+        return;
+      }
+      const hash = await getFileHash(file);
+      const value = ethers.utils.parseEther(amount);
+      const tx = await contract.offerLoan(rate, hash, { value });
+      await tx.wait();
+      alert("Loan offered!");
+    }
+
     async function submitDocument() {
       const file = document.getElementById("borrowDoc").files[0];
       const phone = document.getElementById("phoneNumber").value;
@@ -175,20 +191,6 @@
       const tx = await contract.submitDocument(hash, phone);
       await tx.wait();
       alert("Document, phone and OTP submitted successfully.");
-    }
-
-    async function offerLoan() {
-      const rate = document.getElementById("interestRate").value;
-      const amount = document.getElementById("loanAmount").value;
-      if (!rate || !amount) {
-        alert("Fill all lender details.");
-        return;
-      }
-      const dummyHash = ethers.utils.formatBytes32String("placeholder");
-      const value = ethers.utils.parseEther(amount);
-      const tx = await contract.offerLoan(rate, dummyHash, { value });
-      await tx.wait();
-      alert("Loan offered!");
     }
 
     async function takeLoan() {
