@@ -43,15 +43,21 @@
     }
     #walletStatus {
       text-align: center;
-      margin-top: -20px;
       margin-bottom: 20px;
       color: #333;
     }
+    .otp-input {
+      display: flex;
+      gap: 10px;
+    }
   </style>
 </head>
-<body onload="connectWallet()">
+<body>
 
-  <div id="walletStatus">Connecting wallet...</div>
+  <div class="section">
+    <button onclick="connectWallet()">Connect Wallet</button>
+    <div id="walletStatus">Wallet not connected</div>
+  </div>
 
   <div class="section">
     <h2>Lender Panel</h2>
@@ -65,14 +71,16 @@
     <h2>Borrower Panel</h2>
     <input type="file" id="borrowDoc" />
     <input type="text" id="phoneNumber" placeholder="Enter phone number" />
-    <button onclick="submitDocument()">Submit Document & Phone</button>
+    <button onclick="sendOTP()">Send OTP</button>
+    <input type="text" id="otpCode" placeholder="Enter OTP" />
+    <button onclick="submitDocumentWithOTP()">Submit Document & Phone</button>
     <button onclick="takeLoan()">Take Loan</button>
     <button onclick="repayLoan()">Repay Loan</button>
   </div>
 
   <script>
     const CONTRACT_ADDRESS = "0x18e0A478Ce0f0B182258D0Ba2dDa62b8f3eEC7C3";
-    const CONTRACT_ABI = [
+    const CONTRACT_ABI =[
 	{
 		"inputs": [
 			{
@@ -288,11 +296,29 @@
       return "0x" + [...new Uint8Array(hashBuffer)].map(b => b.toString(16).padStart(2, "0")).join("");
     }
 
-    async function submitDocument() {
+    // Simulated OTP logic
+    let sentOTP = "";
+
+    function sendOTP() {
+      const phone = document.getElementById("phoneNumber").value;
+      if (!phone) {
+        alert("Enter phone number");
+        return;
+      }
+      sentOTP = Math.floor(100000 + Math.random() * 900000).toString();
+      alert("OTP sent: " + sentOTP); // Simulate sending OTP
+    }
+
+    async function submitDocumentWithOTP() {
       const file = document.getElementById("borrowDoc").files[0];
       const phone = document.getElementById("phoneNumber").value;
-      if (!file || !phone) {
-        alert("Please upload a document and enter phone number.");
+      const otp = document.getElementById("otpCode").value;
+      if (!file || !phone || !otp) {
+        alert("Please fill all fields");
+        return;
+      }
+      if (otp !== sentOTP) {
+        alert("Invalid OTP");
         return;
       }
       const hash = await getFileHash(file);
