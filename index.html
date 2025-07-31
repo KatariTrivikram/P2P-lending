@@ -1,119 +1,98 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Decentralized P2P Lending Platform</title>
-  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.min.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Decentralized P2P Lending</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background: #f4f6f8;
-      margin: 0;
-      padding: 2rem;
+      font-family: sans-serif;
+      padding: 20px;
+      background: #f1f4f8;
     }
-    .card {
+    .container {
+      max-width: 800px;
+      margin: auto;
       background: #fff;
-      padding: 1.5rem;
-      margin: 1rem auto;
-      border-radius: 10px;
-      max-width: 500px;
-      box-shadow: 0 0 12px rgba(0,0,0,0.1);
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
-    h2 {
-      margin-top: 0;
-      color: #333;
-    }
-    label {
-      display: block;
-      margin-top: 1rem;
-      font-weight: bold;
-    }
-    input {
+    input, button {
+      padding: 10px;
+      margin: 10px 0;
       width: 100%;
-      padding: 0.6rem;
-      margin-top: 0.5rem;
+      border-radius: 8px;
       border: 1px solid #ccc;
-      border-radius: 6px;
     }
     button {
-      margin-top: 1.5rem;
-      padding: 0.7rem 1.2rem;
-      background: #007bff;
+      background: #0066ff;
       color: white;
       border: none;
-      border-radius: 6px;
       cursor: pointer;
     }
-    button:hover {
-      background: #0056b3;
+    h2 {
+      margin-top: 40px;
     }
   </style>
 </head>
 <body>
-  <div class="card">
-    <h2>Connect Wallet</h2>
+  <div class="container">
+    <h1>Decentralized P2P Lending</h1>
+
     <button onclick="connectWallet()">Connect Wallet</button>
     <p id="walletAddress"></p>
-  </div>
 
-  <div class="card">
     <h2>Lender: Offer Loan</h2>
-    <label>Loan Amount (ETH)</label>
-    <input type="number" id="loanAmount">
-    <label>Interest Rate (%)</label>
-    <input type="number" id="interestRate">
+    <input type="number" id="loanAmount" placeholder="Loan Amount in ETH" />
+    <input type="number" id="interestRate" placeholder="Interest Rate (%)" />
     <button onclick="offerLoan()">Offer Loan</button>
-  </div>
 
-  <div class="card">
-    <h2>Borrower: OTP Verification & Upload</h2>
-    <label>Phone Number (+91...)</label>
-    <input type="text" id="phone">
-    <div id="recaptcha-container"></div>
+    <h2>Borrower: Submit Document & Verify OTP</h2>
+    <input type="text" id="phone" placeholder="Phone number (+91...)" />
     <button onclick="sendOTP()">Send OTP</button>
-
-    <label>Enter OTP</label>
-    <input type="text" id="otp">
+    <div id="recaptcha-container"></div>
+    <input type="text" id="otp" placeholder="Enter OTP" />
     <button onclick="verifyOTP()">Verify OTP</button>
 
-    <label>Upload Document</label>
-    <input type="file" id="document">
+    <input type="file" id="document" />
     <button onclick="submitDocument()">Submit Document</button>
-  </div>
 
-  <div class="card">
     <h2>Borrower: Take Loan</h2>
     <button onclick="takeLoan()">Take Loan</button>
-  </div>
 
-  <div class="card">
-    <h2>Repay Loan</h2>
-    <label>Repay Amount (ETH)</label>
-    <input type="number" id="repayAmount">
+    <h2>Borrower: Repay Loan</h2>
+    <input type="number" id="repayAmount" placeholder="Repay Amount in ETH" />
     <button onclick="repayLoan()">Repay Loan</button>
   </div>
 
   <script>
-    // ✅ Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyD7E27dTzpP48muPwSt-hVSNvPai5SHryU",
       authDomain: "p2plending-c864a.firebaseapp.com",
       projectId: "p2plending-c864a",
-      storageBucket: "p2plending-c864a.firebasestorage.app",
+      storageBucket: "p2plending-c864a.appspot.com",
       messagingSenderId: "916198463762",
       appId: "1:916198463762:web:de2cf6383ff18d456dbbcb",
       measurementId: "G-SHSBBCS0W7"
     };
     firebase.initializeApp(firebaseConfig);
 
-    let currentAccount;
-    let provider;
-    let signer;
     let contract;
+    let signer;
 
-    const contractAddress = "0x608578ad799148D5009D66800BA4EB3eD361943D";
-    const contractABI =[
+    async function connectWallet() {
+      if (window.ethereum) {
+        try {
+          await window.ethereum.request({ method: 'eth_requestAccounts' });
+          const provider = new ethers.providers.Web3Provider(window.ethereum);
+          signer = provider.getSigner();
+          document.getElementById("walletAddress").innerText = await signer.getAddress();
+          const contractAddress = "0x608578ad799148D5009D66800BA4EB3eD361943D";
+          const contractABI = [
 	{
 		"inputs": [
 			{
@@ -307,102 +286,86 @@
 		"type": "function"
 	}
 ];
-
-    async function connectWallet() {
-      if (window.ethereum) {
-        try {
-          const accounts = await ethereum.request({ method: "eth_requestAccounts" });
-          currentAccount = accounts[0];
-          document.getElementById("walletAddress").innerText = `Wallet Connected: ${currentAccount}`;
-          provider = new ethers.providers.Web3Provider(window.ethereum);
-          signer = provider.getSigner();
           contract = new ethers.Contract(contractAddress, contractABI, signer);
         } catch (err) {
-          alert("Wallet connection failed. Try again.");
+          alert("Wallet connection failed");
         }
       } else {
-        alert("MetaMask not found.");
+        alert("MetaMask not detected");
       }
     }
 
     async function offerLoan() {
       const amount = document.getElementById("loanAmount").value;
       const interest = document.getElementById("interestRate").value;
+      if (!contract || !amount || !interest) return;
       try {
-        const tx = await contract.offerLoan(ethers.utils.parseEther(amount), interest);
+        const tx = await contract.offerLoan(ethers.utils.parseEther(amount), parseInt(interest));
         await tx.wait();
-        alert("Loan offered successfully.");
+        alert("Loan offered successfully");
       } catch (err) {
-        alert("Error: " + err.message);
+        alert("Offer failed");
       }
     }
 
-    window.confirmationResult = null;
-
-    async function sendOTP() {
+    let confirmationResult;
+    function sendOTP() {
       const phone = document.getElementById("phone").value;
-      const appVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
-        size: 'invisible'
-      });
-      try {
-        const result = await firebase.auth().signInWithPhoneNumber(phone, appVerifier);
-        window.confirmationResult = result;
-        alert("OTP sent.");
-      } catch (err) {
-        alert("OTP send failed: " + err.message);
-      }
+      window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container');
+      firebase.auth().signInWithPhoneNumber(phone, window.recaptchaVerifier)
+        .then(res => {
+          confirmationResult = res;
+          alert("OTP sent");
+        })
+        .catch(err => alert("OTP failed"));
     }
 
-    async function verifyOTP() {
-      const otp = document.getElementById("otp").value;
-      try {
-        await window.confirmationResult.confirm(otp);
-        alert("OTP verified.");
-      } catch (err) {
-        alert("Incorrect OTP.");
-      }
+    function verifyOTP() {
+      const code = document.getElementById("otp").value;
+      confirmationResult.confirm(code)
+        .then(() => alert("OTP Verified!"))
+        .catch(() => alert("Invalid OTP"));
     }
 
     async function submitDocument() {
       const fileInput = document.getElementById("document");
       const file = fileInput.files[0];
-      if (!file) return alert("Please choose a file.");
+      const phone = document.getElementById("phone").value;
+      if (!file || !phone) return alert("Please upload file and phone");
+
       const reader = new FileReader();
       reader.onload = async function () {
-        const content = new Uint8Array(reader.result);
-        const hash = ethers.utils.keccak256(content);
-        const phone = document.getElementById("phone").value;
-
+        const content = reader.result;
+        const hash = ethers.utils.keccak256(ethers.utils.toUtf8Bytes(content));
         try {
           const tx = await contract.submitDocument(hash, phone);
           await tx.wait();
-          alert("Document submitted!");
+          alert("Document submitted");
         } catch (err) {
-          console.error(err);
-          alert("Submit failed: " + err.message);
+          alert("Submit failed");
         }
       };
-      reader.readAsArrayBuffer(file);
+      reader.readAsText(file);
     }
 
     async function takeLoan() {
       try {
         const tx = await contract.takeLoan();
         await tx.wait();
-        alert("Loan taken!");
+        alert("Loan received!");
       } catch (err) {
-        alert("Take loan failed: " + err.message);
+        alert("Take loan failed");
       }
     }
 
     async function repayLoan() {
-      const amount = document.getElementById("repayAmount").value;
+      const repayAmt = document.getElementById("repayAmount").value;
       try {
-        const tx = await contract.repayLoan({ value: ethers.utils.parseEther(amount) });
+        const tx = await contract.repayLoan({ value: ethers.utils.parseEther(repayAmt) });
         await tx.wait();
-        alert("Loan repaid.");
+        alert("Loan repaid");
       } catch (err) {
-        alert("Repayment failed: " + err.message);
+        alert("Repay failed");
       }
     }
   </script>
