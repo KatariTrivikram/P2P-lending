@@ -1,107 +1,51 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document-Based P2P Lending</title>
-    <script src="https://cdn.jsdelivr.net/npm/web3@1.6.1/dist/web3.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background: #f3f4f6;
-            padding: 2rem;
-            color: #111827;
-        }
-        .container {
-            max-width: 600px;
-            margin: auto;
-            background: #fff;
-            border-radius: 1rem;
-            padding: 2rem;
-            box-shadow: 0 10px 15px rgba(0,0,0,0.1);
-        }
-        input, button {
-            padding: 0.75rem;
-            margin-top: 0.5rem;
-            width: 100%;
-            border-radius: 0.5rem;
-            border: 1px solid #d1d5db;
-            font-size: 1rem;
-        }
-        button {
-            background-color: #3b82f6;
-            color: white;
-            border: none;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #2563eb;
-        }
-        #repayStatus {
-            margin-top: 1rem;
-            font-weight: 600;
-            color: #10b981;
-            transition: all 0.3s ease-in-out;
-        }
-        .success-animation {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-top: 1rem;
-            animation: fadeIn 1s ease-in-out;
-        }
-        .success-checkmark {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            display: block;
-            stroke-width: 2;
-            stroke: #10b981;
-            stroke-miterlimit: 10;
-            box-shadow: inset 0px 0px 0px #10b981;
-            animation: fill .4s ease-in-out .4s forwards, scale .3s ease-in-out .9s both;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes fill {
-            to { box-shadow: inset 0px 0px 0px 30px #10b981; }
-        }
-        @keyframes scale {
-            0%, 100% { transform: none; }
-            50% { transform: scale(1.1); }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document-Backed Lending DApp</title>
+  <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
-<body>
-<div class="container">
-    <h1>Document-Based P2P Lending</h1>
-    <input id="interestRate" placeholder="Interest Rate (%)" />
-    <input id="loanAmount" placeholder="Loan Amount (ETH)" />
-    <input type="file" id="lenderDoc" />
-    <button onclick="offerLoan()">Offer Loan</button>
+<body class="bg-light">
+<div class="container py-5">
+  <h2 class="text-center mb-4">Document-Backed Lending DApp</h2>
 
-    <input type="file" id="borrowerDoc" />
-    <button onclick="submitDocument()">Submit Document</button>
-    <button onclick="takeLoan()">Take Loan</button>
+  <div class="card mb-3 p-3">
+    <h5>🔌 Wallet Connection</h5>
+    <button class="btn btn-primary mb-2" onclick="connectWallet()">Connect Wallet</button>
+    <p id="walletAddress" class="text-success"></p>
+  </div>
 
-    <button onclick="repayLoan()">Repay Loan</button>
-    <div id="repayStatus"></div>
-    <div id="successAnimation" class="success-animation" style="display: none;">
-        <svg class="success-checkmark" viewBox="0 0 52 52">
-            <circle cx="26" cy="26" r="25" fill="none" />
-            <path fill="none" d="M14 27l7 7 16-16" />
-        </svg>
+  <div class="row">
+    <div class="col-md-6">
+      <div class="card p-3">
+        <h5>💰 Lender Panel</h5>
+        <input id="interestRate" class="form-control mb-2" placeholder="Interest Rate (%)">
+        <input id="loanAmount" class="form-control mb-2" placeholder="Loan Amount (in ETH)">
+        <input type="file" id="lenderDoc" class="form-control mb-2">
+        <button class="btn btn-success" onclick="offerLoan()">Offer Loan</button>
+      </div>
     </div>
+
+    <div class="col-md-6">
+      <div class="card p-3">
+        <h5>📄 Borrower Panel</h5>
+        <input type="file" id="borrowerDoc" class="form-control mb-2">
+        <button class="btn btn-warning mb-2" onclick="submitDocument()">Submit Document</button>
+        <button class="btn btn-primary mb-2" onclick="takeLoan()">Take Loan</button>
+        <button class="btn btn-purple text-white" style="background-color: rebeccapurple;" onclick="repayLoan()">Repay Loan</button>
+        <p id="repayStatus" class="text-danger mt-2"></p>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script>
-    let web3;
-    let account;
-    const contractAddress = '0xC2e0620752E4115cA679d71Ad2c9ee63f2d046Fc';
-    const abi = [
+let web3;
+let account;
+const contractAddress = "0xC2e0620752E4115cA679d71Ad2c9ee63f2d046Fc";
+const contractABI = [
 	{
 		"inputs": [
 			{
@@ -290,90 +234,91 @@
 		"type": "function"
 	}
 ];
-    let contract;
+let contract;
 
-    window.addEventListener('load', async () => {
-        if (window.ethereum) {
-            web3 = new Web3(window.ethereum);
-            await window.ethereum.enable();
-            const accounts = await web3.eth.getAccounts();
-            account = accounts[0];
-            contract = new web3.eth.Contract(abi, contractAddress);
-        } else {
-            alert("Please install MetaMask!");
-        }
-    });
+async function connectWallet() {
+  if (window.ethereum) {
+    web3 = new Web3(window.ethereum);
+    await window.ethereum.request({ method: 'eth_requestAccounts' });
+    const accounts = await web3.eth.getAccounts();
+    account = accounts[0];
+    document.getElementById("walletAddress").innerText = `Connected: ${account}`;
+    contract = new web3.eth.Contract(contractABI, contractAddress);
+  } else {
+    alert("Please install MetaMask");
+  }
+}
 
-    async function offerLoan() {
-        const rate = document.getElementById("interestRate").value;
-        const amount = document.getElementById("loanAmount").value;
-        const file = document.getElementById("lenderDoc").files[0];
-        if (!file) return alert("Please upload a document");
+async function offerLoan() {
+  const rate = document.getElementById("interestRate").value;
+  const amount = document.getElementById("loanAmount").value;
+  const file = document.getElementById("lenderDoc").files[0];
+  if (!file) return alert("Please upload a document");
 
-        const hash = await getFileHash(file);
-        await contract.methods.offerLoan(rate, hash).send({ from: account, value: web3.utils.toWei(amount, 'ether') });
+  const hash = await getFileHash(file);
+  await contract.methods.offerLoan(rate, hash).send({ from: account, value: web3.utils.toWei(amount, 'ether') });
+}
+
+async function submitDocument() {
+  const file = document.getElementById("borrowerDoc").files[0];
+  if (!file) return alert("Upload the same document");
+
+  const hash = await getFileHash(file);
+  await contract.methods.submitDocument(hash).send({ from: account });
+}
+
+async function takeLoan() {
+  await contract.methods.takeLoan().send({ from: account });
+}
+
+async function repayLoan() {
+  try {
+    const [loanAmount, interestRate, loanStartTime] = await Promise.all([
+      contract.methods.loanAmount().call(),
+      contract.methods.interestRate().call(),
+      contract.methods.loanStartTime().call()
+    ]);
+
+    const now = Math.floor(Date.now() / 1000);
+    const elapsed = now - Number(loanStartTime);
+    const monthsElapsed = Math.floor(elapsed / (30 * 24 * 60 * 60));
+
+    const interest = (BigInt(loanAmount) * BigInt(interestRate) * BigInt(monthsElapsed + 1)) / 100n;
+    const totalDue = BigInt(loanAmount) + interest;
+
+    await contract.methods.repayLoan().send({ from: account, value: totalDue.toString() });
+
+    document.getElementById("repayStatus").innerText = "Repayment successful. Resetting loan...";
+
+    // Auto-reset loan after repayment
+    try {
+      await contract.methods.resetLoan().send({ from: account });
+      document.getElementById("repayStatus").innerText = "Loan repaid and reset. You can now start a new one.";
+    } catch (resetError) {
+      console.error("Reset failed:", resetError);
+      document.getElementById("repayStatus").innerText = "Repayment done, but loan reset failed.";
     }
 
-    async function submitDocument() {
-        const file = document.getElementById("borrowerDoc").files[0];
-        if (!file) return alert("Upload the same document");
+  } catch (err) {
+    console.error("Repay failed:", err);
+    document.getElementById("repayStatus").innerText = "Failed to repay loan.";
+  }
+}
 
-        const hash = await getFileHash(file);
-        await contract.methods.submitDocument(hash).send({ from: account });
-    }
-
-    async function takeLoan() {
-        await contract.methods.takeLoan().send({ from: account });
-    }
-
-    async function repayLoan() {
-        try {
-            const [loanAmount, interestRate, loanStartTime] = await Promise.all([
-                contract.methods.loanAmount().call(),
-                contract.methods.interestRate().call(),
-                contract.methods.loanStartTime().call()
-            ]);
-
-            const now = Math.floor(Date.now() / 1000);
-            const elapsed = now - Number(loanStartTime);
-            const monthsElapsed = Math.floor(elapsed / (30 * 24 * 60 * 60));
-
-            const interest = (BigInt(loanAmount) * BigInt(interestRate) * BigInt(monthsElapsed + 1)) / 100n;
-            const totalDue = BigInt(loanAmount) + interest;
-
-            await contract.methods.repayLoan().send({ from: account, value: totalDue.toString() });
-            document.getElementById("repayStatus").innerText = "Repayment successful! Resetting loan...";
-            document.getElementById("successAnimation").style.display = "flex";
-
-            setTimeout(async () => {
-                try {
-                    await contract.methods.resetLoan().send({ from: account });
-                    document.getElementById("repayStatus").innerText = "Loan repaid and reset. Ready for new loan!";
-                } catch (resetErr) {
-                    console.error(resetErr);
-                    document.getElementById("repayStatus").innerText = "Repayment done, but reset failed.";
-                }
-            }, 2000);
-
-        } catch (err) {
-            console.error(err);
-            document.getElementById("repayStatus").innerText = "Failed to repay loan.";
-        }
-    }
-
-    async function getFileHash(file) {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = () => {
-                const buffer = new Uint8Array(reader.result);
-                crypto.subtle.digest('SHA-256', buffer).then(h => {
-                    resolve("0x" + Array.from(new Uint8Array(h)).map(b => b.toString(16).padStart(2, '0')).join(''));
-                });
-            };
-            reader.onerror = reject;
-            reader.readAsArrayBuffer(file);
-        });
-    }
+async function getFileHash(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const buffer = new Uint8Array(reader.result);
+      const hashBuffer = new TextEncoder().encode(buffer);
+      crypto.subtle.digest('SHA-256', hashBuffer).then(h => {
+        resolve("0x" + Array.from(new Uint8Array(h)).map(b => b.toString(16).padStart(2, '0')).join(''));
+      });
+    };
+    reader.onerror = reject;
+    reader.readAsArrayBuffer(file);
+  });
+}
 </script>
 </body>
 </html>
