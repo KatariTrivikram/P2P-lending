@@ -10,6 +10,8 @@
 <body class="bg-light">
 <div class="container py-5">
   <h2 class="text-center mb-4">Document-Backed Lending DApp</h2>
+	<button onclick="resetLoanManually()" style="margin-top: 1rem; background-color: #10b981;">Reset Loan (Lender Only)</button>
+
 
   <div class="card mb-3 p-3">
     <h5>🔌 Wallet Connection</h5>
@@ -319,6 +321,15 @@ async function getFileHash(file) {
     reader.readAsArrayBuffer(file);
   });
 }	
+async function resetLoanManually() {
+    try {
+        await contract.methods.resetLoan().send({ from: account });
+        document.getElementById("repayStatus").innerText = "Loan reset manually by lender.";
+    } catch (err) {
+        console.error(err);
+        document.getElementById("repayStatus").innerText = "Manual reset failed.";
+    }
+}
 
 </script>
 </body>
