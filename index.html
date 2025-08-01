@@ -8,123 +8,171 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
     body {
-      background: linear-gradient(135deg, #f3f4f6, #e0f2f1);
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(135deg, #e0f7fa, #ede7f6);
       min-height: 100vh;
       font-family: 'Segoe UI', sans-serif;
-      animation: gradientMove 10s ease infinite;
+      background-size: 400% 400%;
+      animation: gradientFlow 20s ease infinite;
     }
 
-    @keyframes gradientMove {
+    @keyframes gradientFlow {
       0% { background-position: 0% 50%; }
       50% { background-position: 100% 50%; }
       100% { background-position: 0% 50%; }
     }
 
     .container {
-      background-color: white;
+      background: rgba(255, 255, 255, 0.85);
       border-radius: 20px;
       box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
       animation: fadeIn 1s ease-in-out;
     }
 
     @keyframes fadeIn {
-      0% { opacity: 0; transform: translateY(20px); }
-      100% { opacity: 1; transform: translateY(0); }
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
-    h2 {
+    .title {
+      font-size: 2.5rem;
       font-weight: bold;
-      color: #1e3a8a;
+      text-align: center;
+      background: linear-gradient(to right, #8e44ad, #3498db);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 1.5rem;
+      animation: bounceIn 1.5s ease;
+    }
+
+    @keyframes bounceIn {
+      0% { transform: scale(0.9); opacity: 0; }
+      50% { transform: scale(1.05); opacity: 1; }
+      100% { transform: scale(1); }
     }
 
     .card {
-      border-radius: 16px;
-      box-shadow: 0 6px 15px rgba(0, 0, 0, 0.05);
+      border-radius: 20px;
+      backdrop-filter: blur(8px);
+      background: rgba(255, 255, 255, 0.65);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.15);
     }
 
     .btn {
       transition: all 0.3s ease;
-      font-weight: 500;
+      font-weight: 600;
+      border-radius: 12px;
     }
 
     .btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+    }
+
+    .lender-panel {
+      background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+      padding: 20px;
+      border-radius: 20px;
+    }
+
+    .borrower-panel {
+      background: linear-gradient(135deg, #f3e5f5, #ce93d8);
+      padding: 20px;
+      border-radius: 20px;
     }
 
     .btn-success {
-      background: linear-gradient(135deg, #10b981, #34d399);
+      background: linear-gradient(to right, #10b981, #34d399);
       border: none;
+      color: white;
     }
 
     .btn-warning {
-      background: linear-gradient(135deg, #f59e0b, #fbbf24);
+      background: linear-gradient(to right, #f59e0b, #fbbf24);
       border: none;
-      color: #fff;
+      color: white;
     }
 
     .btn-primary {
-      background: linear-gradient(135deg, #3b82f6, #60a5fa);
+      background: linear-gradient(to right, #3b82f6, #60a5fa);
       border: none;
+      color: white;
     }
 
     .btn-purple {
-      background: linear-gradient(135deg, #8b5cf6, #a78bfa);
+      background: linear-gradient(to right, #8b5cf6, #a78bfa);
       border: none;
+      color: white;
     }
 
     .btn-reset {
-      background: linear-gradient(135deg, #14b8a6, #2dd4bf);
+      background: linear-gradient(to right, #14b8a6, #2dd4bf);
       border: none;
+      color: white;
     }
 
     .form-control {
       border-radius: 12px;
+      box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
     }
 
     #repayStatus {
-      font-weight: 500;
-      transition: all 0.3s ease;
+      font-weight: bold;
+      transition: 0.3s;
     }
   </style>
 </head>
 <body>
-<div class="container py-5 px-4">
-  <h2 class="text-center mb-4">Document-Backed Lending DApp</h2>
-  <button onclick="resetLoanManually()" class="btn btn-reset btn-sm text-white mb-3">🔁 Reset Loan (Lender Only)</button>
+  <div class="container py-5 px-4">
+    <h2 class="title">📜 Document-Backed Lending DApp</h2>
 
-  <div class="card mb-4 p-4">
-    <h5 class="mb-3">🔌 Wallet Connection</h5>
-    <button class="btn btn-primary mb-2" onclick="connectWallet()">Connect Wallet</button>
-    <p id="walletAddress" class="text-success"></p>
-  </div>
-
-  <div class="row">
-    <div class="col-md-6 mb-3">
-      <div class="card p-4 h-100">
-        <h5 class="mb-3">💰 Lender Panel</h5>
-        <input id="interestRate" class="form-control mb-2" placeholder="Interest Rate (%)">
-        <input id="loanAmount" class="form-control mb-2" placeholder="Loan Amount (in ETH)">
-        <input type="file" id="lenderDoc" class="form-control mb-3">
-        <button class="btn btn-success w-100" onclick="offerLoan()">Offer Loan</button>
-      </div>
+    <div class="text-end mb-3">
+      <button onclick="resetLoanManually()" class="btn btn-reset btn-sm">🔁 Reset Loan (Lender Only)</button>
     </div>
 
-    <div class="col-md-6 mb-3">
-      <div class="card p-4 h-100">
-        <h5 class="mb-3">📄 Borrower Panel</h5>
-        <input type="file" id="borrowerDoc" class="form-control mb-3">
-        <button class="btn btn-warning w-100 mb-2" onclick="submitDocument()">Submit Document</button>
-        <button class="btn btn-primary w-100 mb-2" onclick="takeLoan()">Take Loan</button>
-        <button class="btn btn-purple w-100 text-white" onclick="repayLoan()">Repay Loan</button>
-        <p id="repayStatus" class="mt-3 text-danger"></p>
+    <div class="card mb-4 p-4">
+      <h5 class="mb-3">🔌 Wallet Connection</h5>
+      <button class="btn btn-primary mb-2" onclick="connectWallet()">Connect Wallet</button>
+      <p id="walletAddress" class="text-success"></p>
+    </div>
+
+    <div class="row">
+      <div class="col-md-6 mb-4">
+        <div class="lender-panel h-100">
+          <div class="card p-4 h-100">
+            <h5 class="mb-3">💰 Lender Panel</h5>
+            <input id="interestRate" class="form-control mb-2" placeholder="Interest Rate (%)">
+            <input id="loanAmount" class="form-control mb-2" placeholder="Loan Amount (in ETH)">
+            <input type="file" id="lenderDoc" class="form-control mb-3">
+            <button class="btn btn-success w-100" onclick="offerLoan()">Offer Loan</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6 mb-4">
+        <div class="borrower-panel h-100">
+          <div class="card p-4 h-100">
+            <h5 class="mb-3">📄 Borrower Panel</h5>
+            <input type="file" id="borrowerDoc" class="form-control mb-3">
+            <button class="btn btn-warning w-100 mb-2" onclick="submitDocument()">Submit Document</button>
+            <button class="btn btn-primary w-100 mb-2" onclick="takeLoan()">Take Loan</button>
+            <button class="btn btn-purple w-100 mb-2" onclick="repayLoan()">Repay Loan</button>
+            <p id="repayStatus" class="mt-3 text-danger"></p>
+          </div>
+        </div>
       </div>
     </div>
   </div>
-</div>
 
-<script>
-let web3;
+  <script>
+    let web3;
 let account;
 const contractAddress = "0xC2e0620752E4115cA679d71Ad2c9ee63f2d046Fc";
 const contractABI = [
@@ -428,7 +476,6 @@ async function getFileHash(file) {
   });
 }
 
-</script>
+  </script>
 </body>
 </html>
-
