@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Document-Backed Lending DApp</title>
   <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
@@ -9,7 +9,7 @@
   <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
 
   <style>
-    :root {
+   :root {
       --bg-light: #f3f4f6;
       --bg-dark: #121212;
       --text-light: #1f2937;
@@ -120,10 +120,37 @@
       from { opacity: 0; transform: translateX(100px); }
       to { opacity: 1; transform: translateX(0); }
     }
+
+    .modal-background {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background-color: rgba(0, 0, 0, 0.6);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+    .modal-box {
+      background: white;
+      color: black;
+      max-height: 80vh;
+      width: 90%;
+      max-width: 600px;
+      overflow-y: auto;
+      border-radius: 15px;
+      padding: 20px;
+    }
+    .modal-box.dark-mode {
+      background-color: #1f1f1f;
+      color: white;
+    }
   </style>
 </head>
 <body>
-  <button class="btn btn-dark dark-toggle" onclick="toggleDarkMode()">🌓 Toggle Dark Mode</button>
+   <button class="btn btn-dark dark-toggle" onclick="toggleDarkMode()">🌓 Toggle Dark Mode</button>
 
   <div class="container py-5 px-4">
     <h2 class="title mb-4">📜 Document-Backed Lending DApp</h2>
@@ -176,6 +203,19 @@
   </div>
 
   <div id="toastBox"></div>
+
+  <div class="text-end mb-4">
+    <button class="btn btn-secondary" onclick="showHistoryModal()">📜 Show History</button>
+  </div>
+
+  <!-- History Modal -->
+  <div id="historyModal" class="modal-background" onclick="closeModal(event)">
+    <div class="modal-box" id="modalContent">
+      <h4>📜 Transaction History</h4>
+      <ul id="historyList"></ul>
+      <button class="btn btn-danger mt-3" onclick="closeModal()">Close</button>
+    </div>
+  </div>
 
   <script>
     // Toggle Dark Mode
@@ -502,6 +542,51 @@ async function getFileHash(file) {
   });
 }
 
+
+
+    // Utility: show history modal
+    async function showHistoryModal() {
+      if (!contract) return alert("Please connect wallet first.");
+      const historyList = document.getElementById("historyList");
+      historyList.innerHTML = "Loading...";
+      document.getElementById("historyModal").style.display = "flex";
+
+      const eventsToFetch = ["LoanOffered", "LoanTaken", "LoanRepaid"];
+      let events = [];
+      try {
+        for (const eventName of eventsToFetch) {
+          const past = await contract.getPastEvents(eventName, { fromBlock: 0, toBlock: "latest" });
+          events.push(...past);
+        }
+
+        // Sort by block number
+        events.sort((a, b) => a.blockNumber - b.blockNumber);
+
+        historyList.innerHTML = "";
+        for (const ev of events) {
+          const time = new Date().toLocaleString(); // fallback, as we aren't decoding timestamp
+          const address = ev.returnValues["lender"] || ev.returnValues["borrower"] || ev.address;
+          const type = ev.event;
+
+          let color = "#3b82f6";
+          if (type === "LoanTaken") color = "#f59e0b";
+          if (type === "LoanRepaid") color = "#10b981";
+
+          const li = document.createElement("li");
+          li.innerHTML = `<span style="color:${color}; font-weight:600">${type}</span> by ${address}`;
+          historyList.appendChild(li);
+        }
+      } catch (e) {
+        console.error("Error fetching history:", e);
+        historyList.innerHTML = "❌ Failed to load history.";
+      }
+    }
+
+    function closeModal(event) {
+      if (!event || event.target.classList.contains("modal-background")) {
+        document.getElementById("historyModal").style.display = "none";
+      }
+    }
   </script>
 </body>
 </html>
