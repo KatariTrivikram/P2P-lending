@@ -1,336 +1,87 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Document-Backed Lending DApp</title>
-  <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <style>
+    body {
+      padding: 20px;
+    }
+
+    #loanStatus {
+      margin-top: 10px;
+      font-weight: bold;
+    }
+
+    .highlight-green {
+      color: green;
+    }
+
+    .highlight-red {
+      color: red;
+    }
+
+    .highlight-yellow {
+      color: #e6b800;
+    }
+
+    .panel {
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0px 0px 5px #999;
+      margin-bottom: 20px;
+    }
+
+    #resetStatus {
+      font-size: 14px;
+    }
+  </style>
 </head>
-<body class="bg-light">
-<div class="container py-5">
-  <h2 class="text-center mb-4">Document-Backed Lending DApp</h2>
-	<button onclick="resetLoanManually()" style="margin-top: 1rem; background-color: #10b981;">Reset Loan (Lender Only)</button>
 
+<body>
+  <div class="container">
+    <h2 class="text-center">Document-Backed Lending DApp</h2>
 
-  <div class="card mb-3 p-3">
-    <h5>🔌 Wallet Connection</h5>
-    <button class="btn btn-primary mb-2" onclick="connectWallet()">Connect Wallet</button>
-    <p id="walletAddress" class="text-success"></p>
-  </div>
-
-  <div class="row">
-    <div class="col-md-6">
-      <div class="card p-3">
-        <h5>💰 Lender Panel</h5>
-        <input id="interestRate" class="form-control mb-2" placeholder="Interest Rate (%)">
-        <input id="loanAmount" class="form-control mb-2" placeholder="Loan Amount (in ETH)">
-        <input type="file" id="lenderDoc" class="form-control mb-2">
-        <button class="btn btn-success" onclick="offerLoan()">Offer Loan</button>
-      </div>
+    <div class="text-right mb-2">
+      <button id="resetLoan" class="btn btn-outline-success btn-sm">Reset Loan (Lender Only)</button>
     </div>
 
-    <div class="col-md-6">
-      <div class="card p-3">
-        <h5>📄 Borrower Panel</h5>
-        <input type="file" id="borrowerDoc" class="form-control mb-2">
-        <button class="btn btn-warning mb-2" onclick="submitDocument()">Submit Document</button>
-        <button class="btn btn-primary mb-2" onclick="takeLoan()">Take Loan</button>
-        <button class="btn btn-purple text-white" style="background-color: rebeccapurple;" onclick="repayLoan()">Repay Loan</button>
-        <p id="repayStatus" class="text-danger mt-2"></p>
+    <div class="panel">
+      <h5>💡 Wallet Connection</h5>
+      <button class="btn btn-primary" id="connectWallet">Connect Wallet</button>
+      <div id="walletAddress" class="mt-2 text-success"></div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-6">
+        <div class="panel bg-light">
+          <h5>💰 Lender Panel</h5>
+          <input type="text" id="interestRate" class="form-control mb-2" placeholder="Interest Rate (%)">
+          <input type="text" id="loanAmount" class="form-control mb-2" placeholder="Loan Amount (in ETH)">
+          <input type="file" id="docFile" class="form-control mb-2">
+          <button id="offerLoan" class="btn btn-success btn-block" disabled>Offer Loan</button>
+          <div id="loanStatus" class="highlight-yellow"></div>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="panel bg-light">
+          <h5>🧑‍💼 Borrower Panel</h5>
+          <input type="file" id="borrowerDocFile" class="form-control mb-2">
+          <input type="text" id="phoneNumber" class="form-control mb-2" placeholder="Phone Number">
+          <button id="submitDocument" class="btn btn-warning btn-block">Submit Document</button>
+          <button id="takeLoan" class="btn btn-primary btn-block">Take Loan</button>
+          <button id="repayLoan" class="btn btn-dark btn-block">Repay Loan</button>
+          <div id="resetStatus" class="highlight-red mt-2"></div>
+        </div>
       </div>
     </div>
   </div>
-</div>
 
-<script>
-let web3;
-let account;
-const contractAddress = "0xC2e0620752E4115cA679d71Ad2c9ee63f2d046Fc";
-const contractABI = [
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "_interestRate",
-				"type": "uint256"
-			},
-			{
-				"internalType": "bytes32",
-				"name": "_docHash",
-				"type": "bytes32"
-			}
-		],
-		"name": "offerLoan",
-		"outputs": [],
-		"stateMutability": "payable",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "repayLoan",
-		"outputs": [],
-		"stateMutability": "payable",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "resetLoan",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "bytes32",
-				"name": "_userDocHash",
-				"type": "bytes32"
-			}
-		],
-		"name": "submitDocument",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "takeLoan",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"stateMutability": "nonpayable",
-		"type": "constructor"
-	},
-	{
-		"inputs": [],
-		"name": "borrower",
-		"outputs": [
-			{
-				"internalType": "address payable",
-				"name": "",
-				"type": "address"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "docSubmitted",
-		"outputs": [
-			{
-				"internalType": "bool",
-				"name": "",
-				"type": "bool"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "documentHash",
-		"outputs": [
-			{
-				"internalType": "bytes32",
-				"name": "",
-				"type": "bytes32"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "interestRate",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "lender",
-		"outputs": [
-			{
-				"internalType": "address payable",
-				"name": "",
-				"type": "address"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "loanAmount",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "loanOffered",
-		"outputs": [
-			{
-				"internalType": "bool",
-				"name": "",
-				"type": "bool"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "loanRepaid",
-		"outputs": [
-			{
-				"internalType": "bool",
-				"name": "",
-				"type": "bool"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "loanStartTime",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "loanTaken",
-		"outputs": [
-			{
-				"internalType": "bool",
-				"name": "",
-				"type": "bool"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	}
-];
-let contract;
-
-async function connectWallet() {
-  if (window.ethereum) {
-    web3 = new Web3(window.ethereum);
-    await window.ethereum.request({ method: 'eth_requestAccounts' });
-    const accounts = await web3.eth.getAccounts();
-    account = accounts[0];
-    document.getElementById("walletAddress").innerText = `Connected: ${account}`;
-    contract = new web3.eth.Contract(contractABI, contractAddress);
-  } else {
-    alert("Please install MetaMask");
-  }
-}
-
-async function offerLoan() {
-  const rate = document.getElementById("interestRate").value;
-  const amount = document.getElementById("loanAmount").value;
-  const file = document.getElementById("lenderDoc").files[0];
-  if (!file) return alert("Please upload a document");
-
-  const hash = await getFileHash(file);
-  await contract.methods.offerLoan(rate, hash).send({ from: account, value: web3.utils.toWei(amount, 'ether') });
-}
-
-async function submitDocument() {
-  const file = document.getElementById("borrowerDoc").files[0];
-  if (!file) return alert("Upload the same document");
-
-  const hash = await getFileHash(file);
-  await contract.methods.submitDocument(hash).send({ from: account });
-}
-
-async function takeLoan() {
-  await contract.methods.takeLoan().send({ from: account });
-}
-
-async function repayLoan() {
-  try {
-    const [loanAmount, interestRate, loanStartTime] = await Promise.all([
-      contract.methods.loanAmount().call(),
-      contract.methods.interestRate().call(),
-      contract.methods.loanStartTime().call()
-    ]);
-
-    const now = Math.floor(Date.now() / 1000);
-    const elapsed = now - Number(loanStartTime);
-    const monthsElapsed = Math.floor(elapsed / (30 * 24 * 60 * 60));
-
-    const interest = (BigInt(loanAmount) * BigInt(interestRate) * BigInt(monthsElapsed + 1)) / 100n;
-    const totalDue = BigInt(loanAmount) + interest;
-
-    await contract.methods.repayLoan().send({ from: account, value: totalDue.toString() });
-
-    document.getElementById("repayStatus").innerText = "Repayment successful. Resetting loan...";
-
-    // Auto-reset loan after repayment
-    try {
-      await contract.methods.resetLoan().send({ from: account });
-      document.getElementById("repayStatus").innerText = "Loan repaid and reset. You can now start a new one.";
-    } catch (resetError) {
-      console.error("Reset failed:", resetError);
-      document.getElementById("repayStatus").innerText = "Repayment done, but loan reset failed.";
-    }
-
-  } catch (err) {
-    console.error("Repay failed:", err);
-    document.getElementById("repayStatus").innerText = "Failed to repay loan.";
-  }
-}
-
-async function getFileHash(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      const buffer = new Uint8Array(reader.result);
-      const hashBuffer = new TextEncoder().encode(buffer);
-      crypto.subtle.digest('SHA-256', hashBuffer).then(h => {
-        resolve("0x" + Array.from(new Uint8Array(h)).map(b => b.toString(16).padStart(2, '0')).join(''));
-      });
-    };
-    reader.onerror = reject;
-    reader.readAsArrayBuffer(file);
-  });
-}	
-async function resetLoanManually() {
-    try {
-        await contract.methods.resetLoan().send({ from: account });
-        document.getElementById("repayStatus").innerText = "Loan reset manually by lender.";
-    } catch (err) {
-        console.error(err);
-        document.getElementById("repayStatus").innerText = "Manual reset failed.";
-    }
-}
-
-</script>
+  <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
+  <script src="app.js"></script>
 </body>
+
 </html>
