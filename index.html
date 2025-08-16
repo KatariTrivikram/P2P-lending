@@ -11,60 +11,36 @@
 
   <style>
    :root {
-      --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-      --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-      --warning-gradient: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
-      --dark-bg: linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 100%);
-      --glass-bg: rgba(255, 255, 255, 0.1);
-      --glass-border: rgba(255, 255, 255, 0.2);
-      --shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+      --bg-light: #f3f4f6;
+      --bg-dark: #121212;
+      --text-light: #1f2937;
+      --text-dark: #f9fafb;
     }
 
     body {
-      background: var(--primary-gradient);
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      transition: all 0.4s ease-in-out;
+      font-family: 'Segoe UI', sans-serif;
       min-height: 100vh;
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-      transition: all 0.3s ease;
-      position: relative;
-    }
-
-    body::before {
-      content: '';
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: 
-        radial-gradient(circle at 20% 20%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
-        radial-gradient(circle at 80% 80%, rgba(255, 119, 198, 0.3) 0%, transparent 50%);
-      pointer-events: none;
-      z-index: -1;
     }
 
     body.dark-mode {
-      background: var(--dark-bg);
-    }
-
-    body.dark-mode::before {
-      background: 
-        radial-gradient(circle at 20% 20%, rgba(67, 56, 202, 0.4) 0%, transparent 50%),
-        radial-gradient(circle at 80% 80%, rgba(147, 51, 234, 0.4) 0%, transparent 50%);
+      background: linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 100%);
+      color: var(--text-dark);
     }
 
     .container {
-      background: var(--glass-bg);
+      background: rgba(255, 255, 255, 0.1);
       backdrop-filter: blur(20px);
-      border: 1px solid var(--glass-border);
-      border-radius: 24px;
-      box-shadow: var(--shadow);
-      transition: all 0.4s ease-in-out;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 20px;
+      box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+      transition: 0.4s;
     }
 
     body.dark-mode .container {
-      background: rgba(0, 0, 0, 0.3);
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(33, 33, 33, 0.85);
+      color: var(--text-dark);
     }
 
     .title {
@@ -74,36 +50,21 @@
       background: linear-gradient(to right, #8e44ad, #3498db);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
-      margin-bottom: 2rem;
-    }
-
-    .dark-toggle {
-      position: fixed;
-      top: 1rem;
-      right: 1rem;
-      z-index: 999;
-      background: var(--glass-bg) !important;
-      backdrop-filter: blur(10px);
-      border: 1px solid var(--glass-border) !important;
-      border-radius: 50px !important;
-      color: white !important;
-      transition: all 0.3s ease;
-    }
-
-    .dark-toggle:hover {
-      transform: scale(1.05);
-      background: rgba(255, 255, 255, 0.2) !important;
-      color: white !important;
     }
 
     .wallet-section {
-      background: var(--glass-bg);
+      background: rgba(255, 255, 255, 0.1);
       backdrop-filter: blur(10px);
-      border: 1px solid var(--glass-border);
+      border: 1px solid rgba(255, 255, 255, 0.2);
       border-radius: 20px;
       padding: 2rem;
       margin-bottom: 2rem;
       text-align: center;
+    }
+
+    .wallet-section h5 {
+      color: white;
+      margin-bottom: 1rem;
     }
 
     .action-buttons {
@@ -115,9 +76,9 @@
     }
 
     .action-btn {
-      background: var(--glass-bg);
+      background: rgba(255, 255, 255, 0.1);
       backdrop-filter: blur(10px);
-      border: 1px solid var(--glass-border);
+      border: 1px solid rgba(255, 255, 255, 0.2);
       border-radius: 20px;
       padding: 1rem 2rem;
       color: white;
@@ -136,19 +97,18 @@
       transform: translateY(-5px);
       box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
       background: rgba(255, 255, 255, 0.2);
-      color: white;
     }
 
     .action-btn.active {
-      background: var(--secondary-gradient);
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
       transform: translateY(-3px);
       box-shadow: 0 10px 25px rgba(245, 87, 108, 0.4);
     }
 
     .panel {
-      background: var(--glass-bg);
+      background: rgba(255, 255, 255, 0.1);
       backdrop-filter: blur(20px);
-      border: 1px solid var(--glass-border);
+      border: 1px solid rgba(255, 255, 255, 0.2);
       border-radius: 24px;
       padding: 2rem;
       margin: 2rem 0;
@@ -184,12 +144,35 @@
       font-size: 1.5rem;
     }
 
+    .lender-panel {
+      background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+      border-radius: 20px;
+      padding: 1rem;
+    }
+
+    .borrower-panel {
+      background: linear-gradient(135deg, #f3e5f5, #ce93d8);
+      border-radius: 20px;
+      padding: 1rem;
+    }
+
+    .card {
+      border-radius: 20px;
+      backdrop-filter: blur(8px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      transition: 0.3s ease-in-out;
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+    }
+
     .form-control {
       background: rgba(255, 255, 255, 0.1);
       border: 1px solid rgba(255, 255, 255, 0.2);
-      border-radius: 15px;
+      border-radius: 12px;
       color: white;
-      padding: 0.75rem 1rem;
       transition: all 0.3s ease;
     }
 
@@ -205,49 +188,38 @@
     }
 
     .btn {
-      border-radius: 15px;
+      border-radius: 12px;
       font-weight: 600;
-      transition: all 0.3s;
-      border: none;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
+      transition: 0.3s;
     }
 
-    .btn-success { 
-      background: var(--success-gradient); 
-      color: white; 
-      border: none; 
-    }
-
-    .btn-warning { 
-      background: var(--warning-gradient); 
-      color: white; 
-      border: none; 
-    }
-
-    .btn-primary { 
-      background: var(--primary-gradient); 
-      color: white; 
-      border: none; 
-    }
-
-    .btn-purple { 
-      background: var(--secondary-gradient); 
-      color: white; 
-      border: none; 
-    }
-
-    .btn-reset { 
-      background: linear-gradient(135deg, #ff6b6b, #ee5a24); 
-      color: white; 
-      border: none;
-      font-size: 0.9rem;
-      padding: 0.5rem 1rem;
-    }
+    .btn-success { background: linear-gradient(to right, #10b981, #34d399); color: white; border: none; }
+    .btn-warning { background: linear-gradient(to right, #f59e0b, #fbbf24); color: white; border: none; }
+    .btn-primary { background: linear-gradient(to right, #3b82f6, #60a5fa); color: white; border: none; }
+    .btn-purple  { background: linear-gradient(to right, #8b5cf6, #a78bfa); color: white; border: none; }
+    .btn-reset   { background: linear-gradient(to right, #14b8a6, #2dd4bf); color: white; border: none; }
 
     .btn:hover {
       transform: translateY(-2px);
       box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+    }
+
+    #repayStatus {
+      font-weight: bold;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 15px;
+      padding: 1rem;
+      color: white;
+      text-align: center;
+      backdrop-filter: blur(10px);
+    }
+
+    .dark-toggle {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      z-index: 999;
     }
 
     .reset-section {
@@ -267,15 +239,14 @@
       position: fixed;
       bottom: 2rem;
       right: 2rem;
-      background: var(--glass-bg);
+      background: rgba(255, 255, 255, 0.1);
       backdrop-filter: blur(10px);
-      border: 1px solid var(--glass-border);
+      border: 1px solid rgba(255, 255, 255, 0.2);
       border-radius: 50px;
       padding: 1rem;
       color: white;
       transition: all 0.3s ease;
       z-index: 998;
-      border: none;
     }
 
     .history-btn-fixed:hover {
@@ -284,29 +255,16 @@
       color: white;
     }
 
-    #repayStatus {
-      font-weight: bold;
-      background: var(--glass-bg);
-      border: 1px solid var(--glass-border);
-      border-radius: 15px;
-      padding: 1rem;
-      margin-top: 1rem;
-      color: white;
-      text-align: center;
-      backdrop-filter: blur(10px);
-    }
-
+    /* Toast styles */
     #toastBox {
       position: fixed;
       bottom: 20px;
-      left: 20px;
+      right: 20px;
       z-index: 9999;
     }
 
     .toast {
-      background: var(--glass-bg);
-      backdrop-filter: blur(10px);
-      border: 1px solid var(--glass-border);
+      background-color: #0d6efd;
       color: white;
       padding: 12px 20px;
       border-radius: 10px;
@@ -315,7 +273,7 @@
     }
 
     @keyframes slideIn {
-      from { opacity: 0; transform: translateX(-100px); }
+      from { opacity: 0; transform: translateX(100px); }
       to { opacity: 1; transform: translateX(0); }
     }
 
@@ -325,33 +283,28 @@
       left: 0;
       width: 100vw;
       height: 100vh;
-      background-color: rgba(0, 0, 0, 0.8);
+      background-color: rgba(0, 0, 0, 0.6);
       display: none;
       justify-content: center;
       align-items: center;
       z-index: 9999;
-      backdrop-filter: blur(10px);
     }
-
     .modal-box {
-      background: var(--glass-bg);
-      backdrop-filter: blur(20px);
-      border: 1px solid var(--glass-border);
+      background: white;
+      color: black;
       max-height: 80vh;
       width: 90%;
       max-width: 600px;
       overflow-y: auto;
       border-radius: 15px;
       padding: 20px;
-      color: white;
     }
-
     .modal-box.dark-mode {
-      background: rgba(0, 0, 0, 0.8);
+      background-color: #1f1f1f;
       color: white;
     }
 
-    .wallet-address {
+    #walletAddress {
       background: rgba(16, 185, 129, 0.1);
       border: 1px solid rgba(16, 185, 129, 0.3);
       border-radius: 12px;
@@ -364,9 +317,6 @@
     }
 
     @media (max-width: 768px) {
-      .title {
-        font-size: 2rem;
-      }
       .action-buttons {
         flex-direction: column;
         align-items: center;
@@ -387,8 +337,8 @@
     </button>
   </div>
 
-  <button class="history-btn-fixed" onclick="showHistoryModal()">
-    <i class="fas fa-history"></i>
+  <button class="btn history-btn-fixed" onclick="showHistoryModal()">
+    <i class="fas fa-history"></i> History
   </button>
 
   <div class="container py-5 px-4">
@@ -404,9 +354,9 @@
     </lottie-player>
 
     <div class="wallet-section">
-      <h5 style="color: white;">🔌 Wallet Connection</h5>
+      <h5>🔌 Wallet Connection</h5>
       <button class="btn btn-primary mb-2" onclick="connectWallet()">Connect Wallet</button>
-      <p id="walletAddress" class="wallet-address" style="display: none;"></p>
+      <p id="walletAddress" class="text-success" style="display: none;"></p>
     </div>
 
     <div class="action-buttons">
@@ -453,7 +403,6 @@
 
   <script>
     let currentPanel = null;
-    let isLender = false;
 
     // Show Panel Function
     function showPanel(type) {
@@ -488,10 +437,8 @@
           const resetSection = document.getElementById('resetSection');
           if (type === 'lender') {
             resetSection.classList.add('show');
-            isLender = true;
           } else {
             resetSection.classList.remove('show');
-            isLender = false;
           }
         }
       }, 300);
@@ -515,7 +462,7 @@
       setTimeout(() => toast.remove(), 3000);
     }
 
-    // All the original blockchain functionality
+    // Original blockchain code starts here
     let web3;
     let account;
     const contractAddress = "0xC2e0620752E4115cA679d71Ad2c9ee63f2d046Fc";
@@ -717,11 +664,10 @@
         await window.ethereum.request({ method: 'eth_requestAccounts' });
         const accounts = await web3.eth.getAccounts();
         account = accounts[0];
-        const addressEl = document.getElementById("walletAddress");
-        addressEl.innerText = `Connected: ${account}`;
-        addressEl.style.display = 'block';
+        document.getElementById("walletAddress").innerText = `Connected: ${account}`;
+        document.getElementById("walletAddress").style.display = 'block';
         contract = new web3.eth.Contract(contractABI, contractAddress);
-        showToast("Wallet connected successfully!", "success");
+        showToast("Wallet connected!", "success");
       } else {
         alert("Please install MetaMask");
       }
@@ -752,7 +698,7 @@
       const hash = await getFileHash(file);
       try {
         await contract.methods.submitDocument(hash).send({ from: account });
-        showToast("Document submitted successfully!", "success");
+        showToast("Document submitted!", "success");
       } catch (err) {
         console.error(err);
         showToast("Failed to submit document", "error");
@@ -805,7 +751,6 @@
         }
 
         showToast("Loan repaid successfully!", "success");
-
       } catch (err) {
         console.error("Repay failed:", err);
         document.getElementById("repayStatus").innerText = "❌ Failed to repay loan.";
@@ -879,3 +824,12 @@
         historyList.innerHTML = "❌ Failed to load history.";
       }
     }
+
+    function closeModal(event) {
+      if (!event || event.target.classList.contains("modal-background")) {
+        document.getElementById("historyModal").style.display = "none";
+      }
+    }
+  </script>
+</body>
+</html>
