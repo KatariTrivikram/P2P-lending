@@ -7,89 +7,84 @@
   <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 
   <style>
    :root {
-      --bg-light: #f3f4f6;
-      --bg-dark: #121212;
-      --text-light: #1f2937;
-      --text-dark: #f9fafb;
+      --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+      --warning-gradient: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+      --dark-bg: linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 100%);
+      --glass-bg: rgba(255, 255, 255, 0.1);
+      --glass-border: rgba(255, 255, 255, 0.2);
+      --shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+    }
+
+    * {
+      box-sizing: border-box;
     }
 
     body {
-      background: linear-gradient(to right, #e0f7fa, #ede7f6);
-      transition: all 0.4s ease-in-out;
-      font-family: 'Segoe UI', sans-serif;
+      background: var(--primary-gradient);
+      min-height: 100vh;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: 
+        radial-gradient(circle at 20% 20%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
+        radial-gradient(circle at 40% 40%, rgba(120, 219, 226, 0.3) 0%, transparent 50%);
+      pointer-events: none;
+      z-index: -1;
     }
 
     body.dark-mode {
-      background: linear-gradient(to right, #121212, #1f1f1f);
-      color: var(--text-dark);
+      background: var(--dark-bg);
     }
 
-    .container {
-      background: rgba(255, 255, 255, 0.85);
-      border-radius: 20px;
-      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-      transition: 0.4s;
+    body.dark-mode::before {
+      background: 
+        radial-gradient(circle at 20% 20%, rgba(67, 56, 202, 0.4) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(147, 51, 234, 0.4) 0%, transparent 50%);
     }
 
-    body.dark-mode .container {
-      background: rgba(33, 33, 33, 0.85);
-      color: var(--text-dark);
+    .main-container {
+      backdrop-filter: blur(20px);
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+      margin: 2rem auto;
+      max-width: 1200px;
+      padding: 2rem;
+      position: relative;
+    }
+
+    body.dark-mode .main-container {
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.1);
     }
 
     .title {
-      font-size: 2.7rem;
-      font-weight: bold;
+      font-size: 3rem;
+      font-weight: 800;
       text-align: center;
-      background: linear-gradient(to right, #8e44ad, #3498db);
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
-    }
-
-    .lender-panel {
-      background: linear-gradient(135deg, #e3f2fd, #bbdefb);
-      border-radius: 20px;
-      padding: 1rem;
-    }
-
-    .borrower-panel {
-      background: linear-gradient(135deg, #f3e5f5, #ce93d8);
-      border-radius: 20px;
-      padding: 1rem;
-    }
-
-    .card {
-      border-radius: 20px;
-      backdrop-filter: blur(8px);
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-      transition: 0.3s ease-in-out;
-    }
-
-    .card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
-    }
-
-    .form-control {
-      border-radius: 12px;
-    }
-
-    .btn {
-      border-radius: 12px;
-      font-weight: 600;
-      transition: 0.3s;
-    }
-
-    .btn-success { background: linear-gradient(to right, #10b981, #34d399); color: white; border: none; }
-    .btn-warning { background: linear-gradient(to right, #f59e0b, #fbbf24); color: white; border: none; }
-    .btn-primary { background: linear-gradient(to right, #3b82f6, #60a5fa); color: white; border: none; }
-    .btn-purple  { background: linear-gradient(to right, #8b5cf6, #a78bfa); color: white; border: none; }
-    .btn-reset   { background: linear-gradient(to right, #14b8a6, #2dd4bf); color: white; border: none; }
-
-    #repayStatus {
-      font-weight: bold;
+      margin-bottom: 2rem;
+      text-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
     }
 
     .dark-toggle {
@@ -97,28 +92,243 @@
       top: 1rem;
       right: 1rem;
       z-index: 999;
+      background: var(--glass-bg) !important;
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--glass-border) !important;
+      border-radius: 50px !important;
+      padding: 0.5rem 1rem !important;
+      color: white !important;
+      transition: all 0.3s ease;
     }
 
-    /* Toast styles */
-    #toastBox {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      z-index: 9999;
+    .dark-toggle:hover {
+      transform: scale(1.05);
+      background: rgba(255, 255, 255, 0.2) !important;
     }
 
-    .toast {
-      background-color: #0d6efd;
+    .wallet-section {
+      background: var(--glass-bg);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--glass-border);
+      border-radius: 20px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      text-align: center;
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+    }
+
+    .action-btn {
+      background: var(--glass-bg);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--glass-border);
+      border-radius: 20px;
+      padding: 1rem 2rem;
       color: white;
-      padding: 12px 20px;
-      border-radius: 10px;
-      margin-top: 10px;
-      animation: slideIn 0.5s ease-out;
+      font-weight: 600;
+      font-size: 1.1rem;
+      transition: all 0.3s ease;
+      cursor: pointer;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      min-width: 180px;
+      justify-content: center;
+    }
+
+    .action-btn:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+    }
+
+    .action-btn.active {
+      background: var(--secondary-gradient);
+      transform: translateY(-3px);
+      box-shadow: 0 10px 25px rgba(245, 87, 108, 0.4);
+    }
+
+    .panel {
+      background: var(--glass-bg);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--glass-border);
+      border-radius: 24px;
+      padding: 2rem;
+      margin: 2rem 0;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      display: none;
+    }
+
+    .panel.show {
+      opacity: 1;
+      transform: translateY(0);
+      display: block;
+      animation: slideIn 0.5s ease-out forwards;
     }
 
     @keyframes slideIn {
-      from { opacity: 0; transform: translateX(100px); }
-      to { opacity: 1; transform: translateX(0); }
+      from {
+        opacity: 0;
+        transform: translateY(30px) scale(0.95);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .panel h4 {
+      color: white;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+      text-align: center;
+      font-size: 1.5rem;
+    }
+
+    .form-control {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 15px;
+      color: white;
+      padding: 0.75rem 1rem;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(10px);
+    }
+
+    .form-control:focus {
+      background: rgba(255, 255, 255, 0.15);
+      border-color: rgba(255, 255, 255, 0.4);
+      color: white;
+      box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.1);
+    }
+
+    .form-control::placeholder {
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    .btn-custom {
+      border-radius: 15px;
+      font-weight: 600;
+      font-size: 1rem;
+      padding: 0.75rem 1.5rem;
+      transition: all 0.3s ease;
+      border: none;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn-custom::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left 0.5s;
+    }
+
+    .btn-custom:hover::before {
+      left: 100%;
+    }
+
+    .btn-offer {
+      background: var(--success-gradient);
+      color: white;
+    }
+
+    .btn-submit {
+      background: var(--warning-gradient);
+      color: white;
+    }
+
+    .btn-take {
+      background: var(--primary-gradient);
+      color: white;
+    }
+
+    .btn-repay {
+      background: var(--secondary-gradient);
+      color: white;
+    }
+
+    .btn-reset {
+      background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+      color: white;
+      font-size: 0.9rem;
+      padding: 0.5rem 1rem;
+    }
+
+    .btn-custom:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+    }
+
+    .status-message {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 15px;
+      padding: 1rem;
+      margin-top: 1rem;
+      color: white;
+      font-weight: 600;
+      text-align: center;
+      backdrop-filter: blur(10px);
+    }
+
+    .status-message.success {
+      border-color: #10b981;
+      background: rgba(16, 185, 129, 0.1);
+    }
+
+    .status-message.error {
+      border-color: #ef4444;
+      background: rgba(239, 68, 68, 0.1);
+    }
+
+    .reset-section {
+      position: absolute;
+      top: 1rem;
+      left: 1rem;
+      opacity: 0;
+      transition: all 0.3s ease;
+    }
+
+    .reset-section.show {
+      opacity: 1;
+    }
+
+    .history-btn {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background: var(--glass-bg);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--glass-border);
+      border-radius: 50px;
+      padding: 1rem;
+      color: white;
+      transition: all 0.3s ease;
+      z-index: 998;
+    }
+
+    .history-btn:hover {
+      transform: scale(1.1);
+      background: rgba(255, 255, 255, 0.2);
     }
 
     .modal-background {
@@ -127,116 +337,342 @@
       left: 0;
       width: 100vw;
       height: 100vh;
-      background-color: rgba(0, 0, 0, 0.6);
+      background-color: rgba(0, 0, 0, 0.8);
       display: none;
       justify-content: center;
       align-items: center;
       z-index: 9999;
+      backdrop-filter: blur(10px);
     }
+
     .modal-box {
-      background: white;
-      color: black;
+      background: var(--glass-bg);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--glass-border);
       max-height: 80vh;
       width: 90%;
       max-width: 600px;
       overflow-y: auto;
-      border-radius: 15px;
-      padding: 20px;
-    }
-    .modal-box.dark-mode {
-      background-color: #1f1f1f;
+      border-radius: 24px;
+      padding: 2rem;
       color: white;
+    }
+
+    #toastBox {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      z-index: 9999;
+    }
+
+    .toast {
+      background: var(--glass-bg);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--glass-border);
+      color: white;
+      padding: 1rem 1.5rem;
+      border-radius: 15px;
+      margin-bottom: 10px;
+      animation: slideInLeft 0.5s ease-out;
+      box-shadow: var(--shadow);
+    }
+
+    @keyframes slideInLeft {
+      from { 
+        opacity: 0; 
+        transform: translateX(-100px); 
+      }
+      to { 
+        opacity: 1; 
+        transform: translateX(0); 
+      }
+    }
+
+    .toast.success {
+      border-left: 4px solid #10b981;
+    }
+
+    .toast.error {
+      border-left: 4px solid #ef4444;
+    }
+
+    .toast.info {
+      border-left: 4px solid #3b82f6;
+    }
+
+    @media (max-width: 768px) {
+      .title {
+        font-size: 2rem;
+      }
+
+      .action-buttons {
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .action-btn {
+        width: 100%;
+        max-width: 300px;
+      }
+
+      .main-container {
+        margin: 1rem;
+        padding: 1rem;
+      }
+    }
+
+    .floating-particles {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    .particle {
+      position: absolute;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 50%;
+      animation: float 6s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% {
+        transform: translateY(0px) rotate(0deg);
+        opacity: 0.7;
+      }
+      50% {
+        transform: translateY(-20px) rotate(180deg);
+        opacity: 1;
+      }
+    }
+
+    .wallet-address {
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      border-radius: 12px;
+      padding: 0.75rem;
+      color: #10b981;
+      font-weight: 600;
+      font-family: 'Monaco', monospace;
+      word-break: break-all;
+      margin-top: 1rem;
     }
   </style>
 </head>
 <body>
-   <button class="btn btn-dark dark-toggle" onclick="toggleDarkMode()">🌓 Toggle Dark Mode</button>
+  <div class="floating-particles">
+    <div class="particle" style="left: 10%; width: 10px; height: 10px; animation-delay: 0s;"></div>
+    <div class="particle" style="left: 20%; width: 15px; height: 15px; animation-delay: 1s;"></div>
+    <div class="particle" style="left: 35%; width: 8px; height: 8px; animation-delay: 2s;"></div>
+    <div class="particle" style="left: 50%; width: 12px; height: 12px; animation-delay: 3s;"></div>
+    <div class="particle" style="left: 65%; width: 6px; height: 6px; animation-delay: 4s;"></div>
+    <div class="particle" style="left: 80%; width: 14px; height: 14px; animation-delay: 5s;"></div>
+    <div class="particle" style="left: 90%; width: 9px; height: 9px; animation-delay: 6s;"></div>
+  </div>
 
-  <div class="container py-5 px-4">
-    <h2 class="title mb-4">📜 Document-Backed Lending DApp</h2>
+  <button class="dark-toggle" onclick="toggleDarkMode()">
+    <i class="fas fa-moon"></i> Dark Mode
+  </button>
 
-    <lottie-player
-      src="https://assets5.lottiefiles.com/packages/lf20_ydo1amjm.json"
-      background="transparent"
-      speed="1"
-      style="width: 100px; height: 100px; margin: 0 auto;"
-      loop
-      autoplay>
-    </lottie-player>
+  <div class="reset-section" id="resetSection">
+    <button onclick="resetLoanManually()" class="btn-custom btn-reset">
+      <i class="fas fa-redo"></i> Reset Loan
+    </button>
+  </div>
 
-    <div class="text-end mb-3">
-      <button onclick="resetLoanManually()" class="btn btn-reset btn-sm">🔁 Reset Loan (Lender Only)</button>
+  <button class="history-btn" onclick="showHistoryModal()">
+    <i class="fas fa-history"></i>
+  </button>
+
+  <div class="main-container">
+    <h1 class="title">
+      <i class="fas fa-file-contract"></i> DeFi Lending
+    </h1>
+
+    <div class="wallet-section">
+      <lottie-player
+        src="https://assets5.lottiefiles.com/packages/lf20_ydo1amjm.json"
+        background="transparent"
+        speed="1"
+        style="width: 80px; height: 80px; margin: 0 auto 1rem;"
+        loop
+        autoplay>
+      </lottie-player>
+      
+      <h4 style="color: white; margin-bottom: 1rem;">
+        <i class="fas fa-wallet"></i> Connect Your Wallet
+      </h4>
+      <button class="btn-custom btn-take" onclick="connectWallet()">
+        <i class="fas fa-plug"></i> Connect Wallet
+      </button>
+      <div id="walletAddress" class="wallet-address" style="display: none;"></div>
     </div>
 
-    <div class="card mb-4 p-4">
-      <h5>🔌 Wallet Connection</h5>
-      <button class="btn btn-primary mb-2" onclick="connectWallet()">Connect Wallet</button>
-      <p id="walletAddress" class="text-success"></p>
+    <div class="action-buttons">
+      <button class="action-btn" onclick="showPanel('lender')" id="lenderBtn">
+        <i class="fas fa-hand-holding-usd"></i>
+        Offer Loan
+      </button>
+      <button class="action-btn" onclick="showPanel('borrower')" id="borrowerBtn">
+        <i class="fas fa-money-bill-wave"></i>
+        Borrow Loan
+      </button>
     </div>
 
-    <div class="row">
-      <div class="col-md-6 mb-4">
-        <div class="lender-panel h-100">
-          <div class="card p-4">
-            <h5>💰 Lender Panel</h5>
-            <input id="interestRate" class="form-control mb-2" placeholder="Interest Rate (%)">
-            <input id="loanAmount" class="form-control mb-2" placeholder="Loan Amount (in ETH)">
-            <input type="file" id="lenderDoc" class="form-control mb-3">
-            <button class="btn btn-success w-100" onclick="offerLoan()">Offer Loan</button>
-          </div>
+    <!-- Lender Panel -->
+    <div class="panel" id="lenderPanel">
+      <h4><i class="fas fa-university"></i> Lender Panel</h4>
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <input id="interestRate" class="form-control" placeholder="Interest Rate (%)" type="number">
+        </div>
+        <div class="col-md-6 mb-3">
+          <input id="loanAmount" class="form-control" placeholder="Loan Amount (ETH)" type="number" step="0.001">
         </div>
       </div>
+      <div class="mb-3">
+        <label class="form-label" style="color: rgba(255,255,255,0.8);">
+          <i class="fas fa-file-upload"></i> Upload Document
+        </label>
+        <input type="file" id="lenderDoc" class="form-control">
+      </div>
+      <button class="btn-custom btn-offer w-100" onclick="offerLoan()">
+        <i class="fas fa-handshake"></i> Offer Loan
+      </button>
+    </div>
 
-      <div class="col-md-6 mb-4">
-        <div class="borrower-panel h-100">
-          <div class="card p-4">
-            <h5>📄 Borrower Panel</h5>
-            <input type="file" id="borrowerDoc" class="form-control mb-3">
-            <button class="btn btn-warning w-100 mb-2" onclick="submitDocument()">Submit Document</button>
-            <button class="btn btn-primary w-100 mb-2" onclick="takeLoan()">Take Loan</button>
-            <button class="btn btn-purple w-100 mb-2" onclick="repayLoan()">Repay Loan</button>
-            <p id="repayStatus" class="mt-3 text-danger"></p>
-          </div>
+    <!-- Borrower Panel -->
+    <div class="panel" id="borrowerPanel">
+      <h4><i class="fas fa-user"></i> Borrower Panel</h4>
+      <div class="mb-3">
+        <label class="form-label" style="color: rgba(255,255,255,0.8);">
+          <i class="fas fa-file-upload"></i> Upload Document
+        </label>
+        <input type="file" id="borrowerDoc" class="form-control">
+      </div>
+      
+      <div class="row">
+        <div class="col-md-4 mb-2">
+          <button class="btn-custom btn-submit w-100" onclick="submitDocument()">
+            <i class="fas fa-paper-plane"></i> Submit Document
+          </button>
+        </div>
+        <div class="col-md-4 mb-2">
+          <button class="btn-custom btn-take w-100" onclick="takeLoan()">
+            <i class="fas fa-download"></i> Take Loan
+          </button>
+        </div>
+        <div class="col-md-4 mb-2">
+          <button class="btn-custom btn-repay w-100" onclick="repayLoan()">
+            <i class="fas fa-credit-card"></i> Repay Loan
+          </button>
         </div>
       </div>
+      
+      <div id="repayStatus" class="status-message" style="display: none;"></div>
     </div>
   </div>
 
   <div id="toastBox"></div>
 
-  <div class="text-end mb-4">
-    <button class="btn btn-secondary" onclick="showHistoryModal()">📜 Show History</button>
-  </div>
-
   <!-- History Modal -->
   <div id="historyModal" class="modal-background" onclick="closeModal(event)">
     <div class="modal-box" id="modalContent">
-      <h4>📜 Transaction History</h4>
-      <ul id="historyList"></ul>
-      <button class="btn btn-danger mt-3" onclick="closeModal()">Close</button>
+      <h4><i class="fas fa-history"></i> Transaction History</h4>
+      <ul id="historyList" style="list-style: none; padding: 0;"></ul>
+      <button class="btn-custom btn-reset mt-3" onclick="closeModal()">
+        <i class="fas fa-times"></i> Close
+      </button>
     </div>
   </div>
 
   <script>
+    let currentPanel = null;
+    let isLender = false;
+
     // Toggle Dark Mode
     function toggleDarkMode() {
       document.body.classList.toggle("dark-mode");
+      const btn = document.querySelector('.dark-toggle');
+      const icon = btn.querySelector('i');
+      if (document.body.classList.contains('dark-mode')) {
+        icon.className = 'fas fa-sun';
+        btn.innerHTML = '<i class="fas fa-sun"></i> Light Mode';
+      } else {
+        icon.className = 'fas fa-moon';
+        btn.innerHTML = '<i class="fas fa-moon"></i> Dark Mode';
+      }
+    }
+
+    // Show Panel
+    function showPanel(type) {
+      // Hide all panels
+      document.querySelectorAll('.panel').forEach(panel => {
+        panel.classList.remove('show');
+        setTimeout(() => panel.style.display = 'none', 300);
+      });
+
+      // Remove active class from all buttons
+      document.querySelectorAll('.action-btn').forEach(btn => {
+        btn.classList.remove('active');
+      });
+
+      // Show selected panel
+      setTimeout(() => {
+        const panel = document.getElementById(type + 'Panel');
+        const btn = document.getElementById(type + 'Btn');
+        
+        panel.style.display = 'block';
+        setTimeout(() => panel.classList.add('show'), 50);
+        btn.classList.add('active');
+        
+        currentPanel = type;
+        
+        // Show reset button only for lender
+        const resetSection = document.getElementById('resetSection');
+        if (type === 'lender') {
+          resetSection.classList.add('show');
+          isLender = true;
+        } else {
+          resetSection.classList.remove('show');
+          isLender = false;
+        }
+      }, 300);
     }
 
     // Toast Notification
     function showToast(message, type = "info") {
       const toast = document.createElement("div");
-      toast.className = "toast";
-      toast.innerText = message;
-
-      if (type === "error") toast.style.backgroundColor = "#dc3545";
-      if (type === "success") toast.style.backgroundColor = "#28a745";
-
+      toast.className = `toast ${type}`;
+      
+      let icon = 'fas fa-info-circle';
+      if (type === 'error') icon = 'fas fa-exclamation-triangle';
+      if (type === 'success') icon = 'fas fa-check-circle';
+      
+      toast.innerHTML = `<i class="${icon}"></i> ${message}`;
+      
       document.getElementById("toastBox").appendChild(toast);
-      setTimeout(() => toast.remove(), 3000);
+      setTimeout(() => {
+        toast.style.animation = 'slideInLeft 0.5s ease-out reverse';
+        setTimeout(() => toast.remove(), 500);
+      }, 3000);
     }
 
-    // Example call: showToast("Connected", "success");
+    // Update status message
+    function updateStatus(message, type = 'info') {
+      const statusEl = document.getElementById('repayStatus');
+      statusEl.textContent = message;
+      statusEl.className = `status-message ${type}`;
+      statusEl.style.display = 'block';
+      
+      // Auto hide after 5 seconds
+      setTimeout(() => {
+        statusEl.style.display = 'none';
+      }, 5000);
+    }
 
 let web3;
 let account;
@@ -435,14 +871,21 @@ let contract;
 
 async function connectWallet() {
   if (window.ethereum) {
-    web3 = new Web3(window.ethereum);
-    await window.ethereum.request({ method: 'eth_requestAccounts' });
-    const accounts = await web3.eth.getAccounts();
-    account = accounts[0];
-    document.getElementById("walletAddress").innerText = `Connected: ${account}`;
-    contract = new web3.eth.Contract(contractABI, contractAddress);
+    try {
+      web3 = new Web3(window.ethereum);
+      await window.ethereum.request({ method: 'eth_requestAccounts' });
+      const accounts = await web3.eth.getAccounts();
+      account = accounts[0];
+      const addressEl = document.getElementById("walletAddress");
+      addressEl.innerHTML = `<i class="fas fa-check-circle"></i> Connected: ${account}`;
+      addressEl.style.display = 'block';
+      contract = new web3.eth.Contract(contractABI, contractAddress);
+      showToast("Wallet connected successfully!", "success");
+    } catch (error) {
+      showToast("Failed to connect wallet", "error");
+    }
   } else {
-    alert("Please install MetaMask");
+    showToast("Please install MetaMask", "error");
   }
 }
 
@@ -450,143 +893,5 @@ async function offerLoan() {
   const rate = document.getElementById("interestRate").value;
   const amount = document.getElementById("loanAmount").value;
   const file = document.getElementById("lenderDoc").files[0];
-  if (!file) return alert("Please upload a document");
-
-  const hash = await getFileHash(file);
-  try {
-    await contract.methods.offerLoan(rate, hash).send({ from: account, value: web3.utils.toWei(amount, 'ether') });
-    alert("Loan offered successfully.");
-  } catch (err) {
-    console.error(err);
-    alert("Failed to offer loan. Make sure the loan is reset and try again.");
-  }
-}
-
-async function submitDocument() {
-  const file = document.getElementById("borrowerDoc").files[0];
-  if (!file) return alert("Upload the same document");
-
-  const hash = await getFileHash(file);
-  await contract.methods.submitDocument(hash).send({ from: account });
-}
-
-async function takeLoan() {
-  await contract.methods.takeLoan().send({ from: account });
-}
-
-async function repayLoan() {
-  try {
-    const [loanAmount, interestRate, loanStartTime, lenderAddress] = await Promise.all([
-      contract.methods.loanAmount().call(),
-      contract.methods.interestRate().call(),
-      contract.methods.loanStartTime().call(),
-      contract.methods.lender().call()
-    ]);
-
-    const now = Math.floor(Date.now() / 1000);
-    const elapsed = now - Number(loanStartTime);
-    const monthsElapsed = Math.floor(elapsed / (30 * 24 * 60 * 60));
-
-    const interest = (BigInt(loanAmount) * BigInt(interestRate) * BigInt(monthsElapsed + 1)) / 100n;
-    const totalDue = BigInt(loanAmount) + interest;
-
-    await contract.methods.repayLoan().send({ from: account, value: totalDue.toString() });
-
-    document.getElementById("repayStatus").innerText = "✅ Repayment successful. Resetting loan...";
-    document.getElementById("repayStatus").classList.remove("text-danger");
-    document.getElementById("repayStatus").classList.add("text-success");
-
-    // Try auto reset (only if lender)
-    if (account.toLowerCase() === lenderAddress.toLowerCase()) {
-      try {
-        await contract.methods.resetLoan().send({ from: account });
-        document.getElementById("repayStatus").innerText = "✅ Loan repaid and reset. You can now start a new one.";
-      } catch (resetError) {
-        console.error("Reset failed:", resetError);
-        document.getElementById("repayStatus").innerText = "Repayment done, but loan reset failed.";
-      }
-    } else {
-      document.getElementById("repayStatus").innerText = "✅ Repayment done. Lender must reset to start a new loan.";
-    }
-
-  } catch (err) {
-    console.error("Repay failed:", err);
-    document.getElementById("repayStatus").innerText = "❌ Failed to repay loan.";
-  }
-}
-
-async function resetLoanManually() {
-  try {
-    await contract.methods.resetLoan().send({ from: account });
-    document.getElementById("repayStatus").innerText = "Loan reset manually by lender.";
-    document.getElementById("repayStatus").classList.remove("text-danger");
-    document.getElementById("repayStatus").classList.add("text-success");
-  } catch (err) {
-    console.error(err);
-    document.getElementById("repayStatus").innerText = "Manual reset failed.";
-  }
-}
-
-async function getFileHash(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      const buffer = new Uint8Array(reader.result);
-      const hashBuffer = new TextEncoder().encode(buffer);
-      crypto.subtle.digest('SHA-256', hashBuffer).then(h => {
-        resolve("0x" + Array.from(new Uint8Array(h)).map(b => b.toString(16).padStart(2, '0')).join(''));
-      });
-    };
-    reader.onerror = reject;
-    reader.readAsArrayBuffer(file);
-  });
-}
-
-
-
-    // Utility: show history modal
-    async function showHistoryModal() {
-      if (!contract) return alert("Please connect wallet first.");
-      const historyList = document.getElementById("historyList");
-      historyList.innerHTML = "Loading...";
-      document.getElementById("historyModal").style.display = "flex";
-
-      const eventsToFetch = ["LoanOffered", "LoanTaken", "LoanRepaid"];
-      let events = [];
-      try {
-        for (const eventName of eventsToFetch) {
-          const past = await contract.getPastEvents(eventName, { fromBlock: 0, toBlock: "latest" });
-          events.push(...past);
-        }
-
-        // Sort by block number
-        events.sort((a, b) => a.blockNumber - b.blockNumber);
-
-        historyList.innerHTML = "";
-        for (const ev of events) {
-          const time = new Date().toLocaleString(); // fallback, as we aren't decoding timestamp
-          const address = ev.returnValues["lender"] || ev.returnValues["borrower"] || ev.address;
-          const type = ev.event;
-
-          let color = "#3b82f6";
-          if (type === "LoanTaken") color = "#f59e0b";
-          if (type === "LoanRepaid") color = "#10b981";
-
-          const li = document.createElement("li");
-          li.innerHTML = `<span style="color:${color}; font-weight:600">${type}</span> by ${address}`;
-          historyList.appendChild(li);
-        }
-      } catch (e) {
-        console.error("Error fetching history:", e);
-        historyList.innerHTML = "❌ Failed to load history.";
-      }
-    }
-
-    function closeModal(event) {
-      if (!event || event.target.classList.contains("modal-background")) {
-        document.getElementById("historyModal").style.display = "none";
-      }
-    }
-  </script>
-</body>
-</html>
+  
+  if (!
