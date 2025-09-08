@@ -866,29 +866,26 @@
 
     let contract;
 
-    async function connectWallet() {
-  if (window.ethereum) {
+   async function connectWallet() {
+  if (typeof window.ethereum !== 'undefined') {
     try {
-      // Request account access
-      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+      await window.ethereum.request({ method: 'eth_requestAccounts' });
+      const accounts = await window.ethereum.request({ method: 'eth_accounts' });
       account = accounts[0];
-
-      // Init web3
       web3 = new Web3(window.ethereum);
       contract = new web3.eth.Contract(contractABI, contractAddress);
-
       document.getElementById("walletAddress").style.display = "block";
       document.getElementById("walletAddress").innerText = "Connected: " + account;
       showToast("Wallet connected!", "success");
-
     } catch (err) {
-      console.error(err);
+      console.error("Connection error:", err);
       showToast("Wallet connection failed!", "error");
     }
   } else {
     showToast("MetaMask not installed!", "error");
   }
 }
+
 
 
     async function offerLoan() {
