@@ -1,507 +1,285 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Document-Backed Lending DApp</title>
-  <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
-
+  <script src="https://cdn.jsdelivr.net/npm/web3@1.10.0/dist/web3.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/bodymovin/5.7.6/lottie.min.js"></script>
   <style>
-    :root {
-      --bg-light: #f3f4f6;
-      --bg-dark: #121212;
-      --text-light: #1f2937;
-      --text-dark: #f9fafb;
-    }
-
     body {
-      background: linear-gradient(to right, #e0f7fa, #ede7f6);
-      transition: all 0.4s ease-in-out;
-      font-family: 'Segoe UI', sans-serif;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(270deg, #ff9a9e, #fad0c4, #fad0c4, #fbc2eb, #a6c1ee);
+      background-size: 1000% 1000%;
+      animation: gradientAnimation 20s ease infinite;
+      transition: background 0.5s, color 0.5s;
     }
-
-    body.dark-mode {
-      background: linear-gradient(to right, #121212, #1f1f1f);
-      color: var(--text-dark);
+    @keyframes gradientAnimation {
+      0% {background-position: 0% 50%;}
+      50% {background-position: 100% 50%;}
+      100% {background-position: 0% 50%;}
     }
-
-    .container {
-      background: rgba(255, 255, 255, 0.85);
-      border-radius: 20px;
-      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-      transition: 0.4s;
-    }
-
-    body.dark-mode .container {
-      background: rgba(33, 33, 33, 0.85);
-      color: var(--text-dark);
-    }
-
-    .title {
-      font-size: 2.7rem;
-      font-weight: bold;
-      text-align: center;
-      background: linear-gradient(to right, #8e44ad, #3498db);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-
-    .lender-panel {
-      background: linear-gradient(135deg, #e3f2fd, #bbdefb);
-      border-radius: 20px;
-      padding: 1rem;
-    }
-
-    .borrower-panel {
-      background: linear-gradient(135deg, #f3e5f5, #ce93d8);
-      border-radius: 20px;
-      padding: 1rem;
-    }
-
-    .card {
-      border-radius: 20px;
-      backdrop-filter: blur(8px);
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-      transition: 0.3s ease-in-out;
-    }
-
-    .card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
-    }
-
-    .form-control {
-      border-radius: 12px;
-    }
-
-    .btn {
-      border-radius: 12px;
-      font-weight: 600;
-      transition: 0.3s;
-    }
-
-    .btn-success { background: linear-gradient(to right, #10b981, #34d399); color: white; border: none; }
-    .btn-warning { background: linear-gradient(to right, #f59e0b, #fbbf24); color: white; border: none; }
-    .btn-primary { background: linear-gradient(to right, #3b82f6, #60a5fa); color: white; border: none; }
-    .btn-purple  { background: linear-gradient(to right, #8b5cf6, #a78bfa); color: white; border: none; }
-    .btn-reset   { background: linear-gradient(to right, #14b8a6, #2dd4bf); color: white; border: none; }
-
-    #repayStatus {
-      font-weight: bold;
-    }
-
-    .dark-toggle {
-      position: fixed;
-      top: 1rem;
-      right: 1rem;
-      z-index: 999;
-    }
-
-    /* Toast styles */
-    #toastBox {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      z-index: 9999;
-    }
-
-    .toast {
-      background-color: #0d6efd;
+    body.dark {
+      background: #121212;
       color: white;
-      padding: 12px 20px;
-      border-radius: 10px;
-      margin-top: 10px;
-      animation: slideIn 0.5s ease-out;
     }
-
-    @keyframes slideIn {
-      from { opacity: 0; transform: translateX(100px); }
-      to { opacity: 1; transform: translateX(0); }
+    header {
+      padding: 1rem;
+      text-align: center;
+      background: rgba(0,0,0,0.7);
+      color: white;
+      position: sticky;
+      top: 0;
     }
+    .container {
+      padding: 2rem;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 1.5rem;
+    }
+    .card {
+      background: white;
+      border-radius: 1rem;
+      padding: 1.5rem;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      transition: transform 0.3s;
+    }
+    body.dark .card {
+      background: #1e1e1e;
+      color: white;
+    }
+    .card:hover { transform: translateY(-5px); }
+    input, button {
+      padding: 0.7rem;
+      margin: 0.5rem 0;
+      width: 100%;
+      border-radius: 0.5rem;
+      border: 1px solid #ccc;
+    }
+    button {
+      background: #6200ea;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover { background: #3700b3; }
+    .dark-toggle {
+      position: absolute;
+      right: 1rem;
+      top: 1rem;
+      background: #333;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      padding: 0.5rem;
+      cursor: pointer;
+    }
+    .toast {
+      visibility: hidden;
+      min-width: 250px;
+      margin-left: -125px;
+      background-color: #333;
+      color: #fff;
+      text-align: center;
+      border-radius: 2px;
+      padding: 16px;
+      position: fixed;
+      z-index: 1;
+      left: 50%;
+      bottom: 30px;
+      font-size: 17px;
+    }
+    .toast.show {
+      visibility: visible;
+      animation: fadein 0.5s, fadeout 0.5s 2.5s;
+    }
+    @keyframes fadein { from {bottom: 0; opacity: 0;} to {bottom: 30px; opacity: 1;} }
+    @keyframes fadeout { from {bottom: 30px; opacity: 1;} to {bottom: 0; opacity: 0;} }
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.7);
+      justify-content: center;
+      align-items: center;
+    }
+    .modal-content {
+      background: white;
+      padding: 2rem;
+      border-radius: 1rem;
+      max-width: 500px;
+      width: 90%;
+    }
+    body.dark .modal-content { background: #222; color: white; }
   </style>
 </head>
 <body>
-  <button class="btn btn-dark dark-toggle" onclick="toggleDarkMode()">🌓 Toggle Dark Mode</button>
-
-  <div class="container py-5 px-4">
-    <h2 class="title mb-4">📜 Document-Backed Lending DApp</h2>
-
-    <lottie-player
-      src="https://assets5.lottiefiles.com/packages/lf20_ydo1amjm.json"
-      background="transparent"
-      speed="1"
-      style="width: 100px; height: 100px; margin: 0 auto;"
-      loop
-      autoplay>
-    </lottie-player>
-
-    <div class="text-end mb-3">
-      <button onclick="resetLoanManually()" class="btn btn-reset btn-sm">🔁 Reset Loan (Lender Only)</button>
+  <header>
+    Document-Backed Lending DApp
+    <button class="dark-toggle" onclick="toggleDarkMode()">🌙</button>
+  </header>
+  <main>
+    <div class="card" style="text-align:center">
+      <div id="animationContainer"></div>
+      <button onclick="connectWallet()">🔗 Connect Wallet</button>
+      <p id="walletAddress">Not Connected</p>
     </div>
-
-    <div class="card mb-4 p-4">
-      <h5>🔌 Wallet Connection</h5>
-      <button class="btn btn-primary mb-2" onclick="connectWallet()">Connect Wallet</button>
-      <p id="walletAddress" class="text-success"></p>
+    <div class="container">
+      <div class="card">
+        <h3>📤 Offer Loan</h3>
+        <input type="number" id="loanAmount" placeholder="Loan Amount in ETH">
+        <input type="number" id="interestRate" placeholder="Interest Rate %">
+        <input type="text" id="docHash" placeholder="Document Hash">
+        <button onclick="offerLoan()">Offer Loan</button>
+      </div>
+      <div class="card">
+        <h3>📑 Submit Document</h3>
+        <input type="text" id="borrowerDocHash" placeholder="Borrower Document Hash">
+        <button onclick="submitDocument()">Submit Document</button>
+      </div>
+      <div class="card">
+        <h3>💳 Take Loan</h3>
+        <button onclick="takeLoan()">Take Loan</button>
+      </div>
+      <div class="card">
+        <h3>💰 Repay Loan</h3>
+        <button onclick="repayLoan()">Repay Loan</button>
+      </div>
+      <div class="card">
+        <h3>🔄 Reset Loan</h3>
+        <button onclick="resetLoanManually()">Reset Loan</button>
+      </div>
+      <div class="card">
+        <h3>📜 Loan History</h3>
+        <button onclick="openHistory()">View History</button>
+      </div>
     </div>
-
-    <div class="row">
-      <div class="col-md-6 mb-4">
-        <div class="lender-panel h-100">
-          <div class="card p-4">
-            <h5>💰 Lender Panel</h5>
-            <input id="interestRate" class="form-control mb-2" placeholder="Interest Rate (%)">
-            <input id="loanAmount" class="form-control mb-2" placeholder="Loan Amount (in ETH)">
-            <input type="file" id="lenderDoc" class="form-control mb-3">
-            <button class="btn btn-success w-100" onclick="offerLoan()">Offer Loan</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="col-md-6 mb-4">
-        <div class="borrower-panel h-100">
-          <div class="card p-4">
-            <h5>📄 Borrower Panel</h5>
-            <input type="file" id="borrowerDoc" class="form-control mb-3">
-            <button class="btn btn-warning w-100 mb-2" onclick="submitDocument()">Submit Document</button>
-            <button class="btn btn-primary w-100 mb-2" onclick="takeLoan()">Take Loan</button>
-            <button class="btn btn-purple w-100 mb-2" onclick="repayLoan()">Repay Loan</button>
-            <p id="repayStatus" class="mt-3 text-danger"></p>
-          </div>
-        </div>
-      </div>
+  </main>
+  
+  <div id="historyModal" class="modal">
+    <div class="modal-content">
+      <h3>📜 Transaction History</h3>
+      <ul id="historyList"></ul>
+      <button onclick="closeHistory()">Close</button>
     </div>
   </div>
 
-  <div id="toastBox"></div>
+  <div id="toast" class="toast"></div>
 
   <script>
-    // Toggle Dark Mode
-    function toggleDarkMode() {
-      document.body.classList.toggle("dark-mode");
+    // Animation
+    lottie.loadAnimation({
+      container: document.getElementById('animationContainer'),
+      renderer: 'svg',
+      loop: true,
+      autoplay: true,
+      path: 'https://assets8.lottiefiles.com/packages/lf20_jcikwtux.json'
+    });
+
+    // Dark Mode
+    function toggleDarkMode() { document.body.classList.toggle('dark'); }
+
+    // Toast
+    function showToast(msg, success=true) {
+      let toast = document.getElementById("toast");
+      toast.innerText = msg;
+      toast.style.background = success ? "green" : "red";
+      toast.className = "toast show";
+      setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 3000);
     }
 
-    // Toast Notification
-    function showToast(message, type = "info") {
-      const toast = document.createElement("div");
-      toast.className = "toast";
-      toast.innerText = message;
+    // Modal
+    function openHistory(){ document.getElementById('historyModal').style.display='flex'; }
+    function closeHistory(){ document.getElementById('historyModal').style.display='none'; }
 
-      if (type === "error") toast.style.backgroundColor = "#dc3545";
-      if (type === "success") toast.style.backgroundColor = "#28a745";
+    // Web3 + Contract
+    let web3;
+    let accounts = [];
+    let contract;
 
-      document.getElementById("toastBox").appendChild(toast);
-      setTimeout(() => toast.remove(), 3000);
-    }
-
-    // Example call: showToast("Connected", "success");
-
-let web3;
-let account;
-const contractAddress = "0xC2e0620752E4115cA679d71Ad2c9ee63f2d046Fc";
-const contractABI = [
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "_interestRate",
-				"type": "uint256"
-			},
-			{
-				"internalType": "bytes32",
-				"name": "_docHash",
-				"type": "bytes32"
-			}
-		],
-		"name": "offerLoan",
-		"outputs": [],
-		"stateMutability": "payable",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "repayLoan",
-		"outputs": [],
-		"stateMutability": "payable",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "resetLoan",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "bytes32",
-				"name": "_userDocHash",
-				"type": "bytes32"
-			}
-		],
-		"name": "submitDocument",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "takeLoan",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"stateMutability": "nonpayable",
-		"type": "constructor"
-	},
-	{
-		"inputs": [],
-		"name": "borrower",
-		"outputs": [
-			{
-				"internalType": "address payable",
-				"name": "",
-				"type": "address"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "docSubmitted",
-		"outputs": [
-			{
-				"internalType": "bool",
-				"name": "",
-				"type": "bool"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "documentHash",
-		"outputs": [
-			{
-				"internalType": "bytes32",
-				"name": "",
-				"type": "bytes32"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "interestRate",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "lender",
-		"outputs": [
-			{
-				"internalType": "address payable",
-				"name": "",
-				"type": "address"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "loanAmount",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "loanOffered",
-		"outputs": [
-			{
-				"internalType": "bool",
-				"name": "",
-				"type": "bool"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "loanRepaid",
-		"outputs": [
-			{
-				"internalType": "bool",
-				"name": "",
-				"type": "bool"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "loanStartTime",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "loanTaken",
-		"outputs": [
-			{
-				"internalType": "bool",
-				"name": "",
-				"type": "bool"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	}
-];
-
-let contract;
-
-async function connectWallet() {
-  if (window.ethereum) {
-    web3 = new Web3(window.ethereum);
-    await window.ethereum.request({ method: 'eth_requestAccounts' });
-    const accounts = await web3.eth.getAccounts();
-    account = accounts[0];
-    document.getElementById("walletAddress").innerText = `Connected: ${account}`;
-    contract = new web3.eth.Contract(contractABI, contractAddress);
-  } else {
-    alert("Please install MetaMask");
-  }
-}
-
-async function offerLoan() {
-  const rate = document.getElementById("interestRate").value;
-  const amount = document.getElementById("loanAmount").value;
-  const file = document.getElementById("lenderDoc").files[0];
-  if (!file) return alert("Please upload a document");
-
-  const hash = await getFileHash(file);
-  try {
-    await contract.methods.offerLoan(rate, hash).send({ from: account, value: web3.utils.toWei(amount, 'ether') });
-    alert("Loan offered successfully.");
-  } catch (err) {
-    console.error(err);
-    alert("Failed to offer loan. Make sure the loan is reset and try again.");
-  }
-}
-
-async function submitDocument() {
-  const file = document.getElementById("borrowerDoc").files[0];
-  if (!file) return alert("Upload the same document");
-
-  const hash = await getFileHash(file);
-  await contract.methods.submitDocument(hash).send({ from: account });
-}
-
-async function takeLoan() {
-  await contract.methods.takeLoan().send({ from: account });
-}
-
-async function repayLoan() {
-  try {
-    const [loanAmount, interestRate, loanStartTime, lenderAddress] = await Promise.all([
-      contract.methods.loanAmount().call(),
-      contract.methods.interestRate().call(),
-      contract.methods.loanStartTime().call(),
-      contract.methods.lender().call()
-    ]);
-
-    const now = Math.floor(Date.now() / 1000);
-    const elapsed = now - Number(loanStartTime);
-    const monthsElapsed = Math.floor(elapsed / (30 * 24 * 60 * 60));
-
-    const interest = (BigInt(loanAmount) * BigInt(interestRate) * BigInt(monthsElapsed + 1)) / 100n;
-    const totalDue = BigInt(loanAmount) + interest;
-
-    await contract.methods.repayLoan().send({ from: account, value: totalDue.toString() });
-
-    document.getElementById("repayStatus").innerText = "✅ Repayment successful. Resetting loan...";
-    document.getElementById("repayStatus").classList.remove("text-danger");
-    document.getElementById("repayStatus").classList.add("text-success");
-
-    // Try auto reset (only if lender)
-    if (account.toLowerCase() === lenderAddress.toLowerCase()) {
-      try {
-        await contract.methods.resetLoan().send({ from: account });
-        document.getElementById("repayStatus").innerText = "✅ Loan repaid and reset. You can now start a new one.";
-      } catch (resetError) {
-        console.error("Reset failed:", resetError);
-        document.getElementById("repayStatus").innerText = "Repayment done, but loan reset failed.";
+    const contractAddress = "0xC2e0620752E4115cA679d71Ad2c9ee63f2d046Fc";
+    const contractABI = [
+      {
+        "inputs":[{"internalType":"uint256","name":"_interestRate","type":"uint256"},{"internalType":"bytes32","name":"_docHash","type":"bytes32"}],
+        "name":"offerLoan","outputs":[],"stateMutability":"payable","type":"function"
+      },
+      {
+        "inputs":[],"name":"repayLoan","outputs":[],"stateMutability":"payable","type":"function"
+      },
+      {
+        "inputs":[],"name":"resetLoan","outputs":[],"stateMutability":"nonpayable","type":"function"
+      },
+      {
+        "inputs":[{"internalType":"bytes32","name":"_userDocHash","type":"bytes32"}],
+        "name":"submitDocument","outputs":[],"stateMutability":"nonpayable","type":"function"
+      },
+      {
+        "inputs":[],"name":"takeLoan","outputs":[],"stateMutability":"nonpayable","type":"function"
+      },
+      {
+        "inputs":[],"stateMutability":"nonpayable","type":"constructor"
+      },
+      {
+        "inputs":[],"name":"borrower","outputs":[{"internalType":"address payable","name":"","type":"address"}],
+        "stateMutability":"view","type":"function"
+      },
+      {
+        "inputs":[],"name":"docSubmitted","outputs":[{"internalType":"bool","name":"","type":"bool"}],
+        "stateMutability":"view","type":"function"
+      },
+      {
+        "inputs":[],"name":"documentHash","outputs":[{"internalType":"bytes32","name":"","type":"bytes32"}],
+        "stateMutability":"view","type":"function"
+      },
+      {
+        "inputs":[],"name":"interestRate","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],
+        "stateMutability":"view","type":"function"
+      },
+      {
+        "inputs":[],"name":"lender","outputs":[{"internalType":"address payable","name":"","type":"address"}],
+        "stateMutability":"view","type":"function"
+      },
+      {
+        "inputs":[],"name":"loanAmount","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],
+        "stateMutability":"view","type":"function"
+      },
+      {
+        "inputs":[],"name":"loanOffered","outputs":[{"internalType":"bool","name":"","type":"bool"}],
+        "stateMutability":"view","type":"function"
+      },
+      {
+        "inputs":[],"name":"loanRepaid","outputs":[{"internalType":"bool","name":"","type":"bool"}],
+        "stateMutability":"view","type":"function"
+      },
+      {
+        "inputs":[],"name":"loanStartTime","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],
+        "stateMutability":"view","type":"function"
+      },
+      {
+        "inputs":[],"name":"loanTaken","outputs":[{"internalType":"bool","name":"","type":"bool"}],
+        "stateMutability":"view","type":"function"
       }
-    } else {
-      document.getElementById("repayStatus").innerText = "✅ Repayment done. Lender must reset to start a new loan.";
+    ];
+
+    async function connectWallet() {
+      if (window.ethereum) {
+        try {
+          web3 = new Web3(window.ethereum);
+          accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+          contract = new web3.eth.Contract(contractABI, contractAddress);
+          document.getElementById("walletAddress").innerText = "Connected: " + accounts[0];
+          showToast("Wallet connected ✅", true);
+        } catch (err) {
+          console.error(err);
+          showToast("Wallet connection failed ❌", false);
+        }
+      } else {
+        showToast("MetaMask not found ❌", false);
+      }
     }
-
-  } catch (err) {
-    console.error("Repay failed:", err);
-    document.getElementById("repayStatus").innerText = "❌ Failed to repay loan.";
-  }
-}
-
-async function resetLoanManually() {
-  try {
-    await contract.methods.resetLoan().send({ from: account });
-    document.getElementById("repayStatus").innerText = "Loan reset manually by lender.";
-    document.getElementById("repayStatus").classList.remove("text-danger");
-    document.getElementById("repayStatus").classList.add("text-success");
-  } catch (err) {
-    console.error(err);
-    document.getElementById("repayStatus").innerText = "Manual reset failed.";
-  }
-}
-
-async function getFileHash(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      const buffer = new Uint8Array(reader.result);
-      const hashBuffer = new TextEncoder().encode(buffer);
-      crypto.subtle.digest('SHA-256', hashBuffer).then(h => {
-        resolve("0x" + Array.from(new Uint8Array(h)).map(b => b.toString(16).padStart(2, '0')).join(''));
-      });
-    };
-    reader.onerror = reject;
-    reader.readAsArrayBuffer(file);
-  });
-}
-
   </script>
 </body>
 </html>
