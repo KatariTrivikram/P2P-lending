@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Document-Backed Lending DApp</title>
 
-  <!-- Load Web3.js BEFORE custom scripts -->
+  <!-- Web3.js -->
   <script src="https://cdn.jsdelivr.net/npm/web3@1.10.0/dist/web3.min.js"></script>
 
   <!-- Bootstrap -->
@@ -15,26 +15,60 @@
     body {
       background: linear-gradient(to right, #e0f7fa, #ede7f6);
       font-family: 'Segoe UI', sans-serif;
+      transition: background 0.3s, color 0.3s;
     }
     .container {
-      max-width: 600px;
+      max-width: 650px;
       background: #fff;
       padding: 20px;
       border-radius: 15px;
       box-shadow: 0 6px 20px rgba(0,0,0,0.1);
-      margin-top: 40px;
+      margin-top: 30px;
     }
-    .toast-message {
+    .dark-mode {
+      background: #121212;
+      color: #eee;
+    }
+    .panel {
+      display: none;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.3s ease-in-out;
+    }
+    .panel.show {
+      display: block;
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .toast {
       padding: 10px;
       border-radius: 5px;
       color: white;
       margin-top: 5px;
     }
-    #toast {
+    #toastBox {
       position: fixed;
       bottom: 20px;
       right: 20px;
       z-index: 1000;
+    }
+    .history-modal {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      display: none;
+      justify-content: center;
+      align-items: center;
+      background: rgba(0,0,0,0.6);
+      z-index: 2000;
+    }
+    .history-content {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      max-width: 500px;
+      width: 90%;
+      max-height: 70%;
+      overflow-y: auto;
     }
   </style>
 </head>
@@ -42,27 +76,97 @@
   <div class="container text-center">
     <h2 class="mb-4">📄 Document-Backed Lending DApp</h2>
 
+    <!-- Wallet -->
     <button class="btn btn-primary mb-3" onclick="connectWallet()">🔗 Connect Wallet</button>
-    <p id="walletAddress" class="fw-bold">Not connected</p>
+    <p id="walletAddress" class="fw-bold" style="display:none;">Not connected</p>
 
-    <hr>
+    <!-- Action buttons -->
+    <div class="mb-3">
+      <button id="lenderBtn" class="btn btn-outline-success action-btn" onclick="showPanel('lender')">I'm Lender</button>
+      <button id="borrowerBtn" class="btn btn-outline-warning action-btn" onclick="showPanel('borrower')">I'm Borrower</button>
+      <button class="btn btn-outline-dark" onclick="toggleDarkMode()">🌙 Toggle Dark Mode</button>
+      <button class="btn btn-outline-info" onclick="showHistoryModal()">📜 History</button>
+    </div>
 
-    <h4 class="mt-4">💰 Offer Loan</h4>
-    <input id="loanAmount" type="number" placeholder="Loan Amount (ETH)" class="form-control mb-2">
-    <input id="interestRate" type="number" placeholder="Interest Rate (%)" class="form-control mb-2">
-    <input id="docHash" type="text" placeholder="Document Hash (e.g., 0xabc...)" class="form-control mb-3">
-    <button class="btn btn-success w-100" onclick="offerLoan()">Offer Loan</button>
+    <!-- Lender Panel -->
+    <div id="lenderPanel" class="panel">
+      <h4>💰 Offer Loan</h4>
+      <input id="loanAmount" type="number" placeholder="Loan Amount (ETH)" class="form-control mb-2">
+      <input id="interestRate" type="number" placeholder="Interest Rate (%)" class="form-control mb-2">
+      <input id="lenderDoc" type="file" class="form-control mb-3">
+      <button class="btn btn-success w-100" onclick="offerLoan()">Offer Loan</button>
+    </div>
+
+    <!-- Borrower Panel -->
+    <div id="borrowerPanel" class="panel">
+      <h4>📄 Borrower Actions</h4>
+      <input id="borrowerDoc" type="file" class="form-control mb-2">
+      <button class="btn btn-secondary w-100 mb-2" onclick="submitDocument()">Submit Document</button>
+      <button class="btn btn-warning w-100 mb-2" onclick="takeLoan()">Take Loan</button>
+      <button class="btn btn-danger w-100" onclick="repayLoan()">Repay Loan</button>
+      <p id="repayStatus" class="mt-2 text-success fw-bold"></p>
+    </div>
+
+    <!-- Reset (only for lender) -->
+    <div id="resetSection" class="mt-3 panel">
+      <button class="btn btn-outline-danger w-100" onclick="resetLoanManually()">🔄 Reset Loan</button>
+    </div>
   </div>
 
-  <!-- Toasts -->
-  <div id="toast"></div>
+  <!-- Toast Notifications -->
+  <div id="toastBox"></div>
+
+  <!-- History Modal -->
+  <div id="historyModal" class="history-modal" onclick="closeModal(event)">
+    <div class="history-content">
+      <h4>Transaction History</h4>
+      <ul id="historyList" class="text-start"></ul>
+      <button class="btn btn-secondary mt-3" onclick="closeModal()">Close</button>
+    </div>
+  </div>
 
   <script>
-    let web3;
-    let account;
-    let contract;
+    let currentPanel = null;
 
-    // Replace with your deployed contract address + ABI
+    // Show Panel
+    function showPanel(type) {
+      document.querySelectorAll('.panel').forEach(panel => {
+        panel.classList.remove('show');
+        setTimeout(() => { if (!panel.classList.contains('show')) panel.style.display = 'none'; }, 300);
+      });
+
+      document.querySelectorAll('.action-btn').forEach(btn => btn.classList.remove('active'));
+
+      setTimeout(() => {
+        const panel = document.getElementById(type + 'Panel');
+        const btn = document.getElementById(type + 'Btn');
+        if (panel && btn) {
+          panel.style.display = 'block';
+          setTimeout(() => panel.classList.add('show'), 50);
+          btn.classList.add('active');
+          currentPanel = type;
+          const resetSection = document.getElementById('resetSection');
+          if (type === 'lender') resetSection.classList.add('show');
+          else resetSection.classList.remove('show');
+        }
+      }, 300);
+    }
+
+    // Dark Mode
+    function toggleDarkMode() { document.body.classList.toggle("dark-mode"); }
+
+    // Toast
+    function showToast(message, type="info") {
+      const toast = document.createElement("div");
+      toast.className = "toast";
+      toast.innerText = message;
+      toast.style.background = type === "success" ? "green" : type === "error" ? "red" : "orange";
+      document.getElementById("toastBox").appendChild(toast);
+      setTimeout(() => toast.remove(), 3000);
+    }
+
+    // Blockchain
+    let web3, account;
     const contractAddress = "0xC2e0620752E4115cA679d71Ad2c9ee63f2d046Fc";
     const contractABI = [
 	{
@@ -253,71 +357,85 @@
 		"type": "function"
 	}
 ];
+    let contract;
+
+    // Connect Wallet
     async function connectWallet() {
       if (window.ethereum) {
+        web3 = new Web3(window.ethereum);
         try {
-          web3 = new Web3(window.ethereum);
-          const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
+          const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
           account = accounts[0];
-          document.getElementById("walletAddress").innerText = `Connected: ${account}`;
-          showToast("✅ Wallet connected!", "success");
-
           contract = new web3.eth.Contract(contractABI, contractAddress);
-
-          // Handle account changes
-          window.ethereum.on("accountsChanged", (accounts) => {
-            account = accounts[0];
-            document.getElementById("walletAddress").innerText = `Connected: ${account}`;
-            showToast("🔄 Account changed", "info");
-          });
-
-          // Handle network changes
-          window.ethereum.on("chainChanged", () => {
-            window.location.reload();
-          });
-
-        } catch (error) {
-          console.error("Wallet connection failed:", error);
-          showToast(`❌ Wallet connection failed: ${error.message}`, "error");
-        }
-      } else {
-        showToast("⚠️ Please install MetaMask", "error");
-      }
+          document.getElementById("walletAddress").style.display = "block";
+          document.getElementById("walletAddress").innerText = "Connected: " + account;
+          showToast("Wallet connected", "success");
+        } catch { showToast("Wallet connection failed", "error"); }
+      } else showToast("MetaMask not found!", "error");
     }
 
+    // File Hash
+    async function getFileHash(file) {
+      const arrayBuffer = await file.arrayBuffer();
+      const hashBuffer = await crypto.subtle.digest("SHA-256", arrayBuffer);
+      return "0x" + Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2,"0")).join("");
+    }
+
+    // Loan Functions
     async function offerLoan() {
-      if (!contract) return showToast("⚠️ Connect wallet first!", "error");
-
-      const amount = document.getElementById("loanAmount").value;
       const rate = document.getElementById("interestRate").value;
-      const hash = document.getElementById("docHash").value;
-
-      if (!amount || !rate || !hash) {
-        return showToast("⚠️ Please fill all fields", "error");
-      }
-
+      const amount = document.getElementById("loanAmount").value;
+      const file = document.getElementById("lenderDoc").files[0];
+      if (!rate || !amount || !file) return showToast("Fill all fields","error");
+      const docHash = await getFileHash(file);
       try {
-        await contract.methods.offerLoan(rate, hash).send({
-          from: account,
-          value: web3.utils.toWei(amount, "ether"),
-        });
-
-        showToast("✅ Loan offered successfully!", "success");
-      } catch (error) {
-        console.error(error);
-        showToast(`❌ Transaction failed: ${error.message}`, "error");
-      }
+        await contract.methods.offerLoan(rate, docHash).send({ from: account, value: web3.utils.toWei(amount,"ether") });
+        showToast("Loan offered!","success"); addHistory("Lender offered "+amount+" ETH @"+rate+"%");
+      } catch { showToast("Offer failed","error"); }
     }
 
-    // Toast Notifications
-    function showToast(message, type) {
-      const toast = document.createElement("div");
-      toast.innerText = message;
-      toast.className = "toast-message";
-      toast.style.background = type === "success" ? "green" : type === "error" ? "red" : "orange";
-      document.getElementById("toast").appendChild(toast);
-      setTimeout(() => toast.remove(), 3000);
+    async function submitDocument() {
+      const file = document.getElementById("borrowerDoc").files[0];
+      if (!file) return showToast("Upload file first","error");
+      const docHash = await getFileHash(file);
+      try {
+        await contract.methods.submitDocument(docHash).send({ from: account });
+        showToast("Document submitted!","success"); addHistory("Borrower submitted document");
+      } catch { showToast("Submission failed","error"); }
     }
+
+    async function takeLoan() {
+      try { await contract.methods.takeLoan().send({ from: account });
+        showToast("Loan taken!","success"); addHistory("Borrower took loan");
+      } catch { showToast("Take loan failed","error"); }
+    }
+
+    async function repayLoan() {
+      try {
+        const loanAmount = await contract.methods.loanAmount().call();
+        const rate = await contract.methods.interestRate().call();
+        const repayment = BigInt(loanAmount) + (BigInt(loanAmount)*BigInt(rate)/BigInt(100));
+        await contract.methods.repayLoan().send({ from: account, value: repayment.toString() });
+        showToast("Loan repaid!","success");
+        document.getElementById("repayStatus").innerText="Loan repaid successfully.";
+        addHistory("Borrower repaid loan");
+      } catch { showToast("Repayment failed","error"); }
+    }
+
+    async function resetLoanManually() {
+      try { await contract.methods.resetLoan().send({ from: account });
+        showToast("Loan reset!","success"); addHistory("Loan reset");
+      } catch { showToast("Reset failed","error"); }
+    }
+
+    // History
+    function addHistory(entry) {
+      const li=document.createElement("li");
+      li.textContent=entry+" ("+new Date().toLocaleString()+")";
+      document.getElementById("historyList").appendChild(li);
+    }
+    function showHistoryModal(){document.getElementById("historyModal").style.display="flex";}
+    function closeModal(event){if(!event || event.target===document.getElementById("historyModal")) document.getElementById("historyModal").style.display="none";}
   </script>
 </body>
 </html>
