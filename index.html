@@ -396,7 +396,7 @@ let contract;
 async function connectWallet() {
   if (window.ethereum) {
     try {
-      // Initialize web3 first
+      // Initialize web3
       web3 = new Web3(window.ethereum);
 
       // Request account access
@@ -424,7 +424,7 @@ async function connectWallet() {
 
     } catch (error) {
       console.error("Wallet connection failed:", error);
-      showToast("❌ Wallet connection failed", "error");
+      showToast(`❌ Wallet connection failed: ${error.message}`, "error");
     }
   } else {
     alert("Please install MetaMask");
