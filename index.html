@@ -395,16 +395,43 @@ let contract;
 
 async function connectWallet() {
   if (window.ethereum) {
-    web3 = new Web3(window.ethereum);
-    await window.ethereum.request({ method: 'eth_requestAccounts' });
-    const accounts = await web3.eth.getAccounts();
-    account = accounts[0];
-    document.getElementById("walletAddress").innerText = `Connected: ${account}`;
-    contract = new web3.eth.Contract(contractABI, contractAddress);
+    try {
+      // Initialize web3 first
+      web3 = new Web3(window.ethereum);
+
+      // Request account access
+      const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
+      account = accounts[0];
+
+      // Show connected wallet
+      document.getElementById("walletAddress").innerText = `Connected: ${account}`;
+      showToast("✅ Wallet connected!", "success");
+
+      // Create contract instance
+      contract = new web3.eth.Contract(contractABI, contractAddress);
+
+      // Handle account change
+      window.ethereum.on("accountsChanged", function (accounts) {
+        account = accounts[0];
+        document.getElementById("walletAddress").innerText = `Connected: ${account}`;
+        showToast("🔄 Account changed", "info");
+      });
+
+      // Handle network change
+      window.ethereum.on("chainChanged", () => {
+        window.location.reload();
+      });
+
+    } catch (error) {
+      console.error("Wallet connection failed:", error);
+      showToast("❌ Wallet connection failed", "error");
+    }
   } else {
     alert("Please install MetaMask");
+    showToast("⚠️ Please install MetaMask", "error");
   }
 }
+
 
 async function offerLoan() {
   const rate = document.getElementById("interestRate").value;
