@@ -1,672 +1,209 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Document-Backed Lending DApp</title>
-    <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Document-Backed Lending DApp</title>
+  <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
 
-    <style>
-        :root {
-            --bg-light: #f3f4f6;
-            --bg-dark: #121212;
-            --text-light: #1f2937;
-            --text-dark: #f9fafb;
-        }
+  <style>
+    :root {
+      --bg-light: #f3f4f6;
+      --bg-dark: #121212;
+      --text-light: #1f2937;
+      --text-dark: #f9fafb;
+    }
 
-        body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            background-attachment: fixed;
-            transition: all 0.4s ease-in-out;
-            font-family: 'Segoe UI', sans-serif;
-            min-height: 100vh;
-            position: relative;
-        }
+    body {
+      background: linear-gradient(to right, #e0f7fa, #ede7f6);
+      transition: all 0.4s ease-in-out;
+      font-family: 'Segoe UI', sans-serif;
+    }
 
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: 
-                radial-gradient(circle at 20% 20%, rgba(255, 107, 107, 0.3) 0%, transparent 50%),
-                radial-gradient(circle at 80% 80%, rgba(74, 144, 226, 0.3) 0%, transparent 50%),
-                radial-gradient(circle at 40% 40%, rgba(245, 101, 101, 0.2) 0%, transparent 50%),
-                linear-gradient(135deg, #ff9a9e 0%, #fecfef 25%, #fecfef 75%, #ffd1ff 100%);
-            z-index: -1;
-            animation: gradientShift 8s ease-in-out infinite;
-        }
+    body.dark-mode {
+      background: linear-gradient(to right, #121212, #1f1f1f);
+      color: var(--text-dark);
+    }
 
-        @keyframes gradientShift {
-            0%, 100% {
-                background: 
-                    radial-gradient(circle at 20% 20%, rgba(255, 107, 107, 0.3) 0%, transparent 50%),
-                    radial-gradient(circle at 80% 80%, rgba(74, 144, 226, 0.3) 0%, transparent 50%),
-                    radial-gradient(circle at 40% 40%, rgba(245, 101, 101, 0.2) 0%, transparent 50%),
-                    linear-gradient(135deg, #ff9a9e 0%, #fecfef 25%, #fecfef 75%, #ffd1ff 100%);
-            }
-            25% {
-                background: 
-                    radial-gradient(circle at 60% 30%, rgba(129, 236, 236, 0.3) 0%, transparent 50%),
-                    radial-gradient(circle at 20% 70%, rgba(255, 154, 158, 0.3) 0%, transparent 50%),
-                    radial-gradient(circle at 80% 20%, rgba(161, 196, 253, 0.2) 0%, transparent 50%),
-                    linear-gradient(135deg, #a8edea 0%, #fed6e3 25%, #fed6e3 75%, #d299c2 100%);
-            }
-            50% {
-                background: 
-                    radial-gradient(circle at 80% 60%, rgba(255, 177, 153, 0.3) 0%, transparent 50%),
-                    radial-gradient(circle at 10% 20%, rgba(255, 206, 84, 0.3) 0%, transparent 50%),
-                    radial-gradient(circle at 60% 80%, rgba(108, 92, 231, 0.2) 0%, transparent 50%),
-                    linear-gradient(135deg, #ffecd2 0%, #fcb69f 25%, #fcb69f 75%, #ff8a80 100%);
-            }
-            75% {
-                background: 
-                    radial-gradient(circle at 30% 80%, rgba(168, 237, 234, 0.3) 0%, transparent 50%),
-                    radial-gradient(circle at 90% 10%, rgba(255, 158, 128, 0.3) 0%, transparent 50%),
-                    radial-gradient(circle at 20% 40%, rgba(209, 153, 194, 0.2) 0%, transparent 50%),
-                    linear-gradient(135deg, #a8e6cf 0%, #dcedc1 25%, #dcedc1 75%, #ffd3a5 100%);
-            }
-        }
+    .container {
+      background: rgba(255, 255, 255, 0.85);
+      border-radius: 20px;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+      transition: 0.4s;
+    }
 
-        body.dark-mode {
-            background: linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 100%);
-            color: var(--text-dark);
-        }
+    body.dark-mode .container {
+      background: rgba(33, 33, 33, 0.85);
+      color: var(--text-dark);
+    }
 
-        body.dark-mode::before {
-            background: 
-                radial-gradient(circle at 20% 20%, rgba(67, 56, 202, 0.4) 0%, transparent 50%),
-                radial-gradient(circle at 80% 80%, rgba(147, 51, 234, 0.4) 0%, transparent 50%),
-                radial-gradient(circle at 40% 40%, rgba(99, 102, 241, 0.3) 0%, transparent 50%),
-                linear-gradient(135deg, #1a1a2e 0%, #16213e 25%, #0f3460 75%, #533483 100%);
-            animation: darkGradientShift 10s ease-in-out infinite;
-        }
+    .title {
+      font-size: 2.7rem;
+      font-weight: bold;
+      text-align: center;
+      background: linear-gradient(to right, #8e44ad, #3498db);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
 
-        @keyframes darkGradientShift {
-            0%, 100% {
-                background: 
-                    radial-gradient(circle at 20% 20%, rgba(67, 56, 202, 0.4) 0%, transparent 50%),
-                    radial-gradient(circle at 80% 80%, rgba(147, 51, 234, 0.4) 0%, transparent 50%),
-                    radial-gradient(circle at 40% 40%, rgba(99, 102, 241, 0.3) 0%, transparent 50%),
-                    linear-gradient(135deg, #1a1a2e 0%, #16213e 25%, #0f3460 75%, #533483 100%);
-            }
-            50% {
-                background: 
-                    radial-gradient(circle at 70% 30%, rgba(99, 102, 241, 0.4) 0%, transparent 50%),
-                    radial-gradient(circle at 30% 70%, rgba(168, 85, 247, 0.4) 0%, transparent 50%),
-                    radial-gradient(circle at 90% 20%, rgba(59, 130, 246, 0.3) 0%, transparent 50%),
-                    linear-gradient(135deg, #0f172a 0%, #1e293b 25%, #334155 75%, #475569 100%);
-            }
-        }
+    .lender-panel {
+      background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+      border-radius: 20px;
+      padding: 1rem;
+    }
 
-        .container {
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(25px);
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            border-radius: 25px;
-            box-shadow: 
-                0 15px 35px rgba(31, 38, 135, 0.2),
-                0 5px 15px rgba(0, 0, 0, 0.1),
-                inset 0 1px 0 rgba(255, 255, 255, 0.3);
-            transition: all 0.4s ease;
-            position: relative;
-            overflow: hidden;
-        }
+    .borrower-panel {
+      background: linear-gradient(135deg, #f3e5f5, #ce93d8);
+      border-radius: 20px;
+      padding: 1rem;
+    }
 
-        .container::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 1px;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
-        }
+    .card {
+      border-radius: 20px;
+      backdrop-filter: blur(8px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      transition: 0.3s ease-in-out;
+    }
 
-        body.dark-mode .container {
-            background: rgba(15, 23, 42, 0.8);
-            border: 2px solid rgba(100, 116, 139, 0.3);
-            color: var(--text-dark);
-            box-shadow: 
-                0 15px 35px rgba(0, 0, 0, 0.4),
-                0 5px 15px rgba(0, 0, 0, 0.2),
-                inset 0 1px 0 rgba(255, 255, 255, 0.1);
-        }
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+    }
 
-        .title {
-            font-size: 2.7rem;
-            font-weight: 900;
-            text-align: center;
-            background: linear-gradient(135deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4);
-            background-size: 300% 300%;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            animation: gradientText 4s ease-in-out infinite;
-            text-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-            margin-bottom: 2rem;
-        }
+    .form-control {
+      border-radius: 12px;
+    }
 
-        @keyframes gradientText {
-            0%, 100% {
-                background-position: 0% 50%;
-            }
-            50% {
-                background-position: 100% 50%;
-            }
-        }
+    .btn {
+      border-radius: 12px;
+      font-weight: 600;
+      transition: 0.3s;
+    }
 
-        .wallet-section {
-            background: rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(15px);
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            border-radius: 25px;
-            padding: 2rem;
-            margin-bottom: 2rem;
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-            box-shadow: 
-                0 10px 30px rgba(0, 0, 0, 0.1),
-                inset 0 1px 0 rgba(255, 255, 255, 0.4);
-        }
+    .btn-success { background: linear-gradient(to right, #10b981, #34d399); color: white; border: none; }
+    .btn-warning { background: linear-gradient(to right, #f59e0b, #fbbf24); color: white; border: none; }
+    .btn-primary { background: linear-gradient(to right, #3b82f6, #60a5fa); color: white; border: none; }
+    .btn-purple  { background: linear-gradient(to right, #8b5cf6, #a78bfa); color: white; border: none; }
+    .btn-reset   { background: linear-gradient(to right, #14b8a6, #2dd4bf); color: white; border: none; }
 
-        .wallet-section::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: conic-gradient(from 0deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-            animation: rotate 8s linear infinite;
-            z-index: 0;
-        }
+    #repayStatus {
+      font-weight: bold;
+    }
 
-        .wallet-section > * {
-            position: relative;
-            z-index: 1;
-        }
+    .dark-toggle {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      z-index: 999;
+    }
 
-        @keyframes rotate {
-            from {
-                transform: rotate(0deg);
-            }
-            to {
-                transform: rotate(360deg);
-            }
-        }
+    /* Toast styles */
+    #toastBox {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 9999;
+    }
 
-        body.dark-mode .wallet-section {
-            background: rgba(30, 41, 59, 0.8);
-            border: 2px solid rgba(100, 116, 139, 0.4);
-        }
+    .toast {
+      background-color: #0d6efd;
+      color: white;
+      padding: 12px 20px;
+      border-radius: 10px;
+      margin-top: 10px;
+      animation: slideIn 0.5s ease-out;
+    }
 
-        .wallet-section h5 {
-            color: white;
-            margin-bottom: 1rem;
-        }
-
-        .action-buttons {
-            display: flex;
-            gap: 1rem;
-            justify-content: center;
-            margin-bottom: 2rem;
-            flex-wrap: wrap;
-        }
-
-        .action-btn {
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(15px);
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            border-radius: 25px;
-            padding: 1.2rem 2.5rem;
-            color: white;
-            font-weight: 700;
-            font-size: 1.1rem;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 0.7rem;
-            min-width: 200px;
-            justify-content: center;
-            position: relative;
-            overflow: hidden;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-            box-shadow: 
-                0 8px 25px rgba(0, 0, 0, 0.1),
-                inset 0 1px 0 rgba(255, 255, 255, 0.3);
-        }
-
-        .action-btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-            transition: left 0.6s;
-        }
-
-        .action-btn:hover::before {
-            left: 100%;
-        }
-
-        .action-btn:hover {
-            transform: translateY(-8px) scale(1.05);
-            box-shadow: 
-                0 20px 40px rgba(0, 0, 0, 0.2),
-                inset 0 1px 0 rgba(255, 255, 255, 0.4);
-            background: rgba(255, 255, 255, 0.25);
-            border-color: rgba(255, 255, 255, 0.5);
-        }
-
-        .action-btn.active {
-            background: linear-gradient(135deg, #ff6b6b, #4ecdc4);
-            transform: translateY(-5px) scale(1.02);
-            box-shadow: 
-                0 15px 35px rgba(255, 107, 107, 0.3),
-                inset 0 1px 0 rgba(255, 255, 255, 0.4);
-            border-color: rgba(255, 255, 255, 0.6);
-        }
-
-        .panel {
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(25px);
-            border: 2px solid rgba(255, 255, 255, 0.25);
-            border-radius: 30px;
-            padding: 2.5rem;
-            margin: 2rem 0;
-            opacity: 0;
-            transform: translateY(30px);
-            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-            display: none;
-            position: relative;
-            overflow: hidden;
-            box-shadow: 
-                0 20px 50px rgba(0, 0, 0, 0.1),
-                inset 0 1px 0 rgba(255, 255, 255, 0.3);
-        }
-
-        .panel::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background: linear-gradient(90deg, 
-                transparent, 
-                rgba(255, 107, 107, 0.6), 
-                rgba(78, 205, 196, 0.6), 
-                rgba(69, 183, 209, 0.6), 
-                transparent
-            );
-            animation: shimmer 3s ease-in-out infinite;
-        }
-
-        @keyframes shimmer {
-            0%, 100% { opacity: 0.3; }
-            50% { opacity: 1; }
-        }
-
-        .panel.show {
-            opacity: 1;
-            transform: translateY(0) scale(1);
-            display: block;
-            animation: panelSlideIn 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-        }
-
-        @keyframes panelSlideIn {
-            from {
-                opacity: 0;
-                transform: translateY(50px) scale(0.9) rotateX(10deg);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0) scale(1) rotateX(0deg);
-            }
-        }
-
-        body.dark-mode .panel {
-            background: rgba(30, 41, 59, 0.8);
-            border: 2px solid rgba(100, 116, 139, 0.3);
-        }
-
-        .panel h5 {
-            color: white;
-            font-weight: 700;
-            margin-bottom: 1.5rem;
-            text-align: center;
-            font-size: 1.5rem;
-        }
-
-        .lender-panel {
-            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
-            border-radius: 20px;
-            padding: 1rem;
-        }
-
-        .borrower-panel {
-            background: linear-gradient(135deg, #f3e5f5, #ce93d8);
-            border-radius: 20px;
-            padding: 1rem;
-        }
-
-        .card {
-            border-radius: 20px;
-            backdrop-filter: blur(8px);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            transition: 0.3s ease-in-out;
-        }
-
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
-        }
-
-        .form-control {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 12px;
-            color: white;
-            transition: all 0.3s ease;
-        }
-
-        .form-control:focus {
-            background: rgba(255, 255, 255, 0.15);
-            border-color: rgba(255, 255, 255, 0.4);
-            color: white;
-            box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.1);
-        }
-
-        .form-control::placeholder {
-            color: rgba(255, 255, 255, 0.7);
-        }
-
-        .btn {
-            border-radius: 12px;
-            font-weight: 600;
-            transition: 0.3s;
-        }
-
-        .btn-success { background: linear-gradient(to right, #10b981, #34d399); color: white; border: none; }
-        .btn-warning { background: linear-gradient(to right, #f59e0b, #fbbf24); color: white; border: none; }
-        .btn-primary { background: linear-gradient(to right, #3b82f6, #60a5fa); color: white; border: none; }
-        .btn-purple  { background: linear-gradient(to right, #8b5cf6, #a78bfa); color: white; border: none; }
-        .btn-reset   { background: linear-gradient(to right, #14b8a6, #2dd4bf); color: white; border: none; }
-
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
-        }
-
-        #repayStatus {
-            font-weight: bold;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 15px;
-            padding: 1rem;
-            color: white;
-            text-align: center;
-            backdrop-filter: blur(10px);
-        }
-
-        .dark-toggle {
-            position: fixed;
-            top: 1rem;
-            right: 1rem;
-            z-index: 999;
-        }
-
-        .reset-section {
-            position: absolute;
-            top: 1rem;
-            left: 1rem;
-            opacity: 0;
-            transition: all 0.3s ease;
-            z-index: 998;
-        }
-
-        .reset-section.show {
-            opacity: 1;
-        }
-
-        .history-btn-fixed {
-            position: fixed;
-            bottom: 2rem;
-            right: 2rem;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 50px;
-            padding: 1rem;
-            color: white;
-            transition: all 0.3s ease;
-            z-index: 998;
-        }
-
-        .history-btn-fixed:hover {
-            transform: scale(1.1);
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-        }
-
-        /* Toast styles */
-        #toastBox {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            z-index: 9999;
-        }
-
-        .toast {
-            background-color: #0d6efd;
-            color: white;
-            padding: 12px 20px;
-            border-radius: 10px;
-            margin-top: 10px;
-            animation: slideIn 0.5s ease-out;
-        }
-
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateX(100px); }
-            to { opacity: 1; transform: translateX(0); }
-        }
-
-        .modal-background {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background-color: rgba(0, 0, 0, 0.6);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-        }
-        .modal-box {
-            background: white;
-            color: black;
-            max-height: 80vh;
-            width: 90%;
-            max-width: 600px;
-            overflow-y: auto;
-            border-radius: 15px;
-            padding: 20px;
-        }
-        .modal-box.dark-mode {
-            background-color: #1f1f1f;
-            color: white;
-        }
-
-        #walletAddress {
-            background: rgba(16, 185, 129, 0.1);
-            border: 1px solid rgba(16, 185, 129, 0.3);
-            border-radius: 12px;
-            padding: 0.75rem;
-            color: #10b981;
-            font-weight: 600;
-            font-family: 'Monaco', monospace;
-            word-break: break-all;
-            margin-top: 1rem;
-        }
-
-        @media (max-width: 768px) {
-            .action-buttons {
-                flex-direction: column;
-                align-items: center;
-            }
-            .action-btn {
-                width: 100%;
-                max-width: 300px;
-            }
-        }
-    </style>
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateX(100px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+  </style>
 </head>
 <body>
-    <button class="btn btn-dark dark-toggle" onclick="toggleDarkMode()">🌓 Toggle Dark Mode</button>
+  <button class="btn btn-dark dark-toggle" onclick="toggleDarkMode()">🌓 Toggle Dark Mode</button>
 
-    <div class="reset-section" id="resetSection">
-        <button onclick="resetLoanManually()" class="btn btn-reset">
-            <i class="fas fa-redo"></i> Reset Loan
-        </button>
+  <div class="container py-5 px-4">
+    <h2 class="title mb-4">📜 Document-Backed Lending DApp</h2>
+
+    <lottie-player
+      src="https://assets5.lottiefiles.com/packages/lf20_ydo1amjm.json"
+      background="transparent"
+      speed="1"
+      style="width: 100px; height: 100px; margin: 0 auto;"
+      loop
+      autoplay>
+    </lottie-player>
+
+    <div class="text-end mb-3">
+      <button onclick="resetLoanManually()" class="btn btn-reset btn-sm">🔁 Reset Loan (Lender Only)</button>
     </div>
 
-    <button class="btn history-btn-fixed" onclick="showHistoryModal()">
-        <i class="fas fa-history"></i> History
-    </button>
+    <div class="card mb-4 p-4">
+      <h5>🔌 Wallet Connection</h5>
+      <button class="btn btn-primary mb-2" onclick="connectWallet()">Connect Wallet</button>
+      <p id="walletAddress" class="text-success"></p>
+    </div>
 
-    <div class="container py-5 px-4">
-        <h2 class="title mb-4">📜 Document-Backed Lending DApp</h2>
-
-        <lottie-player
-            src="https://assets5.lottiefiles.com/packages/lf20_ydo1amjm.json"
-            background="transparent"
-            speed="1"
-            style="width: 100px; height: 100px; margin: 0 auto;"
-            loop
-            autoplay>
-        </lottie-player>
-
-        <div class="wallet-section">
-            <h5>🔌 Wallet Connection</h5>
-            <button class="btn btn-primary mb-2" onclick="connectWallet()">Connect Wallet</button>
-            <p id="walletAddress" class="text-success" style="display: none;"></p>
-        </div>
-
-        <div class="action-buttons">
-            <button class="action-btn" onclick="showPanel('lender')" id="lenderBtn">
-                <i class="fas fa-hand-holding-usd"></i>
-                Offer Loan
-            </button>
-            <button class="action-btn" onclick="showPanel('borrower')" id="borrowerBtn">
-                <i class="fas fa-money-bill-wave"></i>
-                Borrow Loan
-            </button>
-        </div>
-
-        <div class="panel" id="lenderPanel">
+    <div class="row">
+      <div class="col-md-6 mb-4">
+        <div class="lender-panel h-100">
+          <div class="card p-4">
             <h5>💰 Lender Panel</h5>
             <input id="interestRate" class="form-control mb-2" placeholder="Interest Rate (%)">
             <input id="loanAmount" class="form-control mb-2" placeholder="Loan Amount (in ETH)">
             <input type="file" id="lenderDoc" class="form-control mb-3">
             <button class="btn btn-success w-100" onclick="offerLoan()">Offer Loan</button>
+          </div>
         </div>
+      </div>
 
-        <div class="panel" id="borrowerPanel">
+      <div class="col-md-6 mb-4">
+        <div class="borrower-panel h-100">
+          <div class="card p-4">
             <h5>📄 Borrower Panel</h5>
             <input type="file" id="borrowerDoc" class="form-control mb-3">
             <button class="btn btn-warning w-100 mb-2" onclick="submitDocument()">Submit Document</button>
             <button class="btn btn-primary w-100 mb-2" onclick="takeLoan()">Take Loan</button>
             <button class="btn btn-purple w-100 mb-2" onclick="repayLoan()">Repay Loan</button>
             <p id="repayStatus" class="mt-3 text-danger"></p>
+          </div>
         </div>
+      </div>
     </div>
+  </div>
 
-    <div id="toastBox"></div>
+  <div id="toastBox"></div>
 
-    <div id="historyModal" class="modal-background" onclick="closeModal(event)">
-        <div class="modal-box" id="modalContent">
-            <h4>📜 Transaction History</h4>
-            <ul id="historyList"></ul>
-            <button class="btn btn-danger mt-3" onclick="closeModal()">Close</button>
-        </div>
-    </div>
+  <script>
+    // Toggle Dark Mode
+    function toggleDarkMode() {
+      document.body.classList.toggle("dark-mode");
+    }
 
-    <script>
-        let currentPanel = null;
+    // Toast Notification
+    function showToast(message, type = "info") {
+      const toast = document.createElement("div");
+      toast.className = "toast";
+      toast.innerText = message;
 
-        // Show Panel Function
-        function showPanel(type) {
-            // Hide all panels first
-            document.querySelectorAll('.panel').forEach(panel => {
-                panel.classList.remove('show');
-                setTimeout(() => {
-                    if (!panel.classList.contains('show')) {
-                        panel.style.display = 'none';
-                    }
-                }, 300);
-            });
+      if (type === "error") toast.style.backgroundColor = "#dc3545";
+      if (type === "success") toast.style.backgroundColor = "#28a745";
 
-            // Remove active class from all buttons
-            document.querySelectorAll('.action-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
+      document.getElementById("toastBox").appendChild(toast);
+      setTimeout(() => toast.remove(), 3000);
+    }
 
-            // Show selected panel after a delay
-            setTimeout(() => {
-                const panel = document.getElementById(type + 'Panel');
-                const btn = document.getElementById(type + 'Btn');
-                
-                if (panel && btn) {
-                    panel.style.display = 'block';
-                    setTimeout(() => panel.classList.add('show'), 50);
-                    btn.classList.add('active');
-                    
-                    currentPanel = type;
-                    
-                    // Show/hide reset button based on panel type
-                    const resetSection = document.getElementById('resetSection');
-                    if (type === 'lender') {
-                        resetSection.classList.add('show');
-                    } else {
-                        resetSection.classList.remove('show');
-                    }
-                }
-            }, 300);
-        }
+let web3;
+let account;
 
-        // Toggle Dark Mode
-        function toggleDarkMode() {
-            document.body.classList.toggle("dark-mode");
-        }
+// ✅ Contract Address
+const contractAddress = "0xC2e0620752E4115cA679d71Ad2c9ee63f2d046Fc";
 
-        // Toast Notification
-        function showToast(message, type = "info") {
-            const toast = document.createElement("div");
-            toast.className = "toast";
-            toast.innerText = message;
-
-            if (type === "error") toast.style.backgroundColor = "#dc3545";
-            if (type === "success") toast.style.backgroundColor = "#28a745";
-
-            document.getElementById("toastBox").appendChild(toast);
-            setTimeout(() => toast.remove(), 3000);
-        }
-
-        // Original blockchain code starts here
-        let web3;
-        let account;
-        const contractAddress = "0xC2e0620752E4115cA679d71Ad2c9ee63f2d046Fc";
-        const contractABI =[
+// ✅ Contract ABI
+const contractABI =[
 	{
 		"inputs": [
 			{
@@ -854,209 +391,124 @@
 		"stateMutability": "view",
 		"type": "function"
 	}
-] ;
+];
 
-        let contract;
+let contract;
 
-        async function connectWallet() {
-            if (window.ethereum) {
-                try {
-                    // This is the modern, recommended way to request accounts
-                    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-                    
-                    web3 = new Web3(window.ethereum);
-                    account = accounts[0];
-                    document.getElementById("walletAddress").innerText = `Connected: ${account}`;
-                    document.getElementById("walletAddress").style.display = 'block';
-                    contract = new web3.eth.Contract(contractABI, contractAddress);
-                    showToast("Wallet connected!", "success");
+async function connectWallet() {
+  if (window.ethereum) {
+    web3 = new Web3(window.ethereum);
+    await window.ethereum.request({ method: 'eth_requestAccounts' });
+    const accounts = await web3.eth.getAccounts();
+    account = accounts[0];
+    document.getElementById("walletAddress").innerText = `Connected: ${account}`;
+    contract = new web3.eth.Contract(contractABI, contractAddress);
+    showToast("Wallet connected!", "success");
+  } else {
+    showToast("Please install MetaMask", "error");
+  }
+}
 
-                    // Listen for account changes
-                    window.ethereum.on('accountsChanged', function (newAccounts) {
-                        if (newAccounts.length === 0) {
-                            // User disconnected all accounts
-                            document.getElementById("walletAddress").innerText = 'No account connected.';
-                            showToast("Wallet disconnected.", "info");
-                            account = null;
-                        } else {
-                            // Account changed
-                            account = newAccounts[0];
-                            document.getElementById("walletAddress").innerText = `Connected: ${account}`;
-                            showToast("Account changed.", "info");
-                        }
-                    });
+async function offerLoan() {
+  const rate = document.getElementById("interestRate").value;
+  const amount = document.getElementById("loanAmount").value;
+  const file = document.getElementById("lenderDoc").files[0];
+  if (!file) return showToast("Please upload a document", "error");
 
-                } catch (error) {
-                    if (error.code === 4001) {
-                        // User rejected connection
-                        showToast("Wallet connection rejected by user.", "error");
-                    } else {
-                        console.error(error);
-                        showToast("Failed to connect wallet.", "error");
-                    }
-                }
-            } else {
-                showToast("Please install MetaMask or a compatible wallet extension.", "error");
-            }
-        }
+  const hash = await getFileHash(file);
+  try {
+    await contract.methods.offerLoan(rate, hash).send({ from: account, value: web3.utils.toWei(amount, 'ether') });
+    showToast("Loan offered successfully.", "success");
+  } catch (err) {
+    console.error(err);
+    showToast("Failed to offer loan. Reset first and try again.", "error");
+  }
+}
 
-        async function offerLoan() {
-            const rate = document.getElementById("interestRate").value;
-            const amount = document.getElementById("loanAmount").value;
-            const file = document.getElementById("lenderDoc").files[0];
-            if (!file) return alert("Please upload a document");
+async function submitDocument() {
+  const file = document.getElementById("borrowerDoc").files[0];
+  if (!file) return showToast("Upload the same document", "error");
 
-            const hash = await getFileHash(file);
-            try {
-                await contract.methods.offerLoan(rate, hash).send({ from: account, value: web3.utils.toWei(amount, 'ether') });
-                alert("Loan offered successfully.");
-                showToast("Loan offered successfully!", "success");
-            } catch (err) {
-                console.error(err);
-                alert("Failed to offer loan. Make sure the loan is reset and try again.");
-                showToast("Failed to offer loan", "error");
-            }
-        }
+  const hash = await getFileHash(file);
+  await contract.methods.submitDocument(hash).send({ from: account });
+  showToast("Document submitted", "success");
+}
 
-        async function submitDocument() {
-            const file = document.getElementById("borrowerDoc").files[0];
-            if (!file) return alert("Upload the same document");
+async function takeLoan() {
+  await contract.methods.takeLoan().send({ from: account });
+  showToast("Loan taken successfully", "success");
+}
 
-            const hash = await getFileHash(file);
-            try {
-                await contract.methods.submitDocument(hash).send({ from: account });
-                showToast("Document submitted!", "success");
-            } catch (err) {
-                console.error(err);
-                showToast("Failed to submit document", "error");
-            }
-        }
+async function repayLoan() {
+  try {
+    const [loanAmount, interestRate, loanStartTime, lenderAddress] = await Promise.all([
+      contract.methods.loanAmount().call(),
+      contract.methods.interestRate().call(),
+      contract.methods.loanStartTime().call(),
+      contract.methods.lender().call()
+    ]);
 
-        async function takeLoan() {
-            try {
-                await contract.methods.takeLoan().send({ from: account });
-                showToast("Loan taken successfully!", "success");
-            } catch (err) {
-                console.error(err);
-                showToast("Failed to take loan", "error");
-            }
-        }
+    const now = Math.floor(Date.now() / 1000);
+    const elapsed = now - Number(loanStartTime);
+    const monthsElapsed = Math.floor(elapsed / (30 * 24 * 60 * 60));
 
-        async function repayLoan() {
-            try {
-                const [loanAmount, interestRate, loanStartTime, lenderAddress] = await Promise.all([
-                    contract.methods.loanAmount().call(),
-                    contract.methods.interestRate().call(),
-                    contract.methods.loanStartTime().call(),
-                    contract.methods.lender().call()
-                ]);
+    const interest = (BigInt(loanAmount) * BigInt(interestRate) * BigInt(monthsElapsed + 1)) / 100n;
+    const totalDue = BigInt(loanAmount) + interest;
 
-                const now = Math.floor(Date.now() / 1000);
-                const elapsed = now - Number(loanStartTime);
-                const monthsElapsed = Math.floor(elapsed / (30 * 24 * 60 * 60));
+    await contract.methods.repayLoan().send({ from: account, value: totalDue.toString() });
 
-                const interest = (BigInt(loanAmount) * BigInt(interestRate) * BigInt(monthsElapsed + 1)) / 100n;
-                const totalDue = BigInt(loanAmount) + interest;
+    document.getElementById("repayStatus").innerText = "✅ Repayment successful.";
+    document.getElementById("repayStatus").classList.remove("text-danger");
+    document.getElementById("repayStatus").classList.add("text-success");
 
-                await contract.methods.repayLoan().send({ from: account, value: totalDue.toString() });
+    if (account.toLowerCase() === lenderAddress.toLowerCase()) {
+      try {
+        await contract.methods.resetLoan().send({ from: account });
+        document.getElementById("repayStatus").innerText = "✅ Loan repaid and reset.";
+      } catch (resetError) {
+        console.error("Reset failed:", resetError);
+        document.getElementById("repayStatus").innerText = "Repayment done, but loan reset failed.";
+      }
+    } else {
+      document.getElementById("repayStatus").innerText = "✅ Repayment done. Lender must reset to start a new loan.";
+    }
+  } catch (err) {
+    console.error("Repay failed:", err);
+    document.getElementById("repayStatus").innerText = "❌ Failed to repay loan.";
+  }
+}
 
-                document.getElementById("repayStatus").innerText = "✅ Repayment successful. Resetting loan...";
-                document.getElementById("repayStatus").classList.remove("text-danger");
-                document.getElementById("repayStatus").classList.add("text-success");
+async function resetLoanManually() {
+  try {
+    await contract.methods.resetLoan().send({ from: account });
+    document.getElementById("repayStatus").innerText = "Loan reset manually by lender.";
+    document.getElementById("repayStatus").classList.remove("text-danger");
+    document.getElementById("repayStatus").classList.add("text-success");
+  } catch (err) {
+    console.error(err);
+    document.getElementById("repayStatus").innerText = "Manual reset failed.";
+  }
+}
 
-                // Try auto reset (only if lender)
-                if (account.toLowerCase() === lenderAddress.toLowerCase()) {
-                    try {
-                        await contract.methods.resetLoan().send({ from: account });
-                        document.getElementById("repayStatus").innerText = "✅ Loan repaid and reset. You can now start a new one.";
-                    } catch (resetError) {
-                        console.error("Reset failed:", resetError);
-                        document.getElementById("repayStatus").innerText = "Repayment done, but loan reset failed.";
-                    }
-                } else {
-                    document.getElementById("repayStatus").innerText = "✅ Repayment done. Lender must reset to start a new loan.";
-                }
-
-                showToast("Loan repaid successfully!", "success");
-            } catch (err) {
-                console.error("Repay failed:", err);
-                document.getElementById("repayStatus").innerText = "❌ Failed to repay loan.";
-                showToast("Failed to repay loan", "error");
-            }
-        }
-
-        async function resetLoanManually() {
-            try {
-                await contract.methods.resetLoan().send({ from: account });
-                document.getElementById("repayStatus").innerText = "Loan reset manually by lender.";
-                document.getElementById("repayStatus").classList.remove("text-danger");
-                document.getElementById("repayStatus").classList.add("text-success");
-                showToast("Loan reset successfully!", "success");
-            } catch (err) {
-                console.error(err);
-                document.getElementById("repayStatus").innerText = "Manual reset failed.";
-                showToast("Manual reset failed", "error");
-            }
-        }
-
-        async function getFileHash(file) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onload = () => {
-                    const buffer = new Uint8Array(reader.result);
-                    const hashBuffer = new TextEncoder().encode(buffer);
-                    crypto.subtle.digest('SHA-256', hashBuffer).then(h => {
-                        resolve("0x" + Array.from(new Uint8Array(h)).map(b => b.toString(16).padStart(2, '0')).join(''));
-                    });
-                };
-                reader.onerror = reject;
-                reader.readAsArrayBuffer(file);
-            });
-        }
-
-        // Utility: show history modal
-        async function showHistoryModal() {
-            if (!contract) return alert("Please connect wallet first.");
-            const historyList = document.getElementById("historyList");
-            historyList.innerHTML = "Loading...";
-            document.getElementById("historyModal").style.display = "flex";
-
-            const eventsToFetch = ["LoanOffered", "LoanTaken", "LoanRepaid"];
-            let events = [];
-            try {
-                for (const eventName of eventsToFetch) {
-                    const past = await contract.getPastEvents(eventName, { fromBlock: 0, toBlock: "latest" });
-                    events.push(...past);
-                }
-
-                // Sort by block number
-                events.sort((a, b) => a.blockNumber - b.blockNumber);
-
-                historyList.innerHTML = "";
-                for (const ev of events) {
-                    const time = new Date().toLocaleString(); // fallback, as we aren't decoding timestamp
-                    const address = ev.returnValues["lender"] || ev.returnValues["borrower"] || ev.address;
-                    const type = ev.event;
-
-                    let color = "#3b82f6";
-                    if (type === "LoanTaken") color = "#f59e0b";
-                    if (type === "LoanRepaid") color = "#10b981";
-
-                    const li = document.createElement("li");
-                    li.innerHTML = `<span style="color:${color}; font-weight:600">${type}</span> by ${address}`;
-                    historyList.appendChild(li);
-                }
-            } catch (e) {
-                console.error("Error fetching history:", e);
-                historyList.innerHTML = "❌ Failed to load history.";
-            }
-        }
-
-        function closeModal(event) {
-            if (!event || event.target.classList.contains("modal-background")) {
-                document.getElementById("historyModal").style.display = "none";
-            }
-        }
-    </script>
+// ✅ Fixed Hash Function
+async function getFileHash(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = async () => {
+      try {
+        const buffer = reader.result; // ArrayBuffer
+        const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        const hashHex = "0x" + hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        resolve(hashHex);
+      } catch (err) {
+        reject(err);
+      }
+    };
+    reader.onerror = reject;
+    reader.readAsArrayBuffer(file);
+  });
+}
+  </script>
 </body>
 </html>
