@@ -196,14 +196,12 @@
       setTimeout(() => toast.remove(), 3000);
     }
 
+    // Example call: showToast("Connected", "success");
+
 let web3;
 let account;
-
-// ✅ Contract Address
-const contractAddress = "0xC2e0620752E4115cA679d71Ad2c9ee63f2d046Fc";
-
-// ✅ Contract ABI
-const contractABI =[
+const contractAddress = "0x7BF2d9282bdCFBbeA83a2b55A196b56bA18a423c";
+const contractABI = [
 	{
 		"inputs": [
 			{
@@ -403,9 +401,8 @@ async function connectWallet() {
     account = accounts[0];
     document.getElementById("walletAddress").innerText = `Connected: ${account}`;
     contract = new web3.eth.Contract(contractABI, contractAddress);
-    showToast("Wallet connected!", "success");
   } else {
-    showToast("Please install MetaMask", "error");
+    alert("Please install MetaMask");
   }
 }
 
@@ -413,30 +410,28 @@ async function offerLoan() {
   const rate = document.getElementById("interestRate").value;
   const amount = document.getElementById("loanAmount").value;
   const file = document.getElementById("lenderDoc").files[0];
-  if (!file) return showToast("Please upload a document", "error");
+  if (!file) return alert("Please upload a document");
 
   const hash = await getFileHash(file);
   try {
     await contract.methods.offerLoan(rate, hash).send({ from: account, value: web3.utils.toWei(amount, 'ether') });
-    showToast("Loan offered successfully.", "success");
+    alert("Loan offered successfully.");
   } catch (err) {
     console.error(err);
-    showToast("Failed to offer loan. Reset first and try again.", "error");
+    alert("Failed to offer loan. Make sure the loan is reset and try again.");
   }
 }
 
 async function submitDocument() {
   const file = document.getElementById("borrowerDoc").files[0];
-  if (!file) return showToast("Upload the same document", "error");
+  if (!file) return alert("Upload the same document");
 
   const hash = await getFileHash(file);
   await contract.methods.submitDocument(hash).send({ from: account });
-  showToast("Document submitted", "success");
 }
 
 async function takeLoan() {
   await contract.methods.takeLoan().send({ from: account });
-  showToast("Loan taken successfully", "success");
 }
 
 async function repayLoan() {
@@ -457,14 +452,15 @@ async function repayLoan() {
 
     await contract.methods.repayLoan().send({ from: account, value: totalDue.toString() });
 
-    document.getElementById("repayStatus").innerText = "✅ Repayment successful.";
+    document.getElementById("repayStatus").innerText = "✅ Repayment successful. Resetting loan...";
     document.getElementById("repayStatus").classList.remove("text-danger");
     document.getElementById("repayStatus").classList.add("text-success");
 
+    // Try auto reset (only if lender)
     if (account.toLowerCase() === lenderAddress.toLowerCase()) {
       try {
         await contract.methods.resetLoan().send({ from: account });
-        document.getElementById("repayStatus").innerText = "✅ Loan repaid and reset.";
+        document.getElementById("repayStatus").innerText = "✅ Loan repaid and reset. You can now start a new one.";
       } catch (resetError) {
         console.error("Reset failed:", resetError);
         document.getElementById("repayStatus").innerText = "Repayment done, but loan reset failed.";
@@ -472,6 +468,7 @@ async function repayLoan() {
     } else {
       document.getElementById("repayStatus").innerText = "✅ Repayment done. Lender must reset to start a new loan.";
     }
+
   } catch (err) {
     console.error("Repay failed:", err);
     document.getElementById("repayStatus").innerText = "❌ Failed to repay loan.";
@@ -490,25 +487,21 @@ async function resetLoanManually() {
   }
 }
 
-// ✅ Fixed Hash Function
 async function getFileHash(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onload = async () => {
-      try {
-        const buffer = reader.result; // ArrayBuffer
-        const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
-        const hashArray = Array.from(new Uint8Array(hashBuffer));
-        const hashHex = "0x" + hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-        resolve(hashHex);
-      } catch (err) {
-        reject(err);
-      }
+    reader.onload = () => {
+      const buffer = new Uint8Array(reader.result);
+      const hashBuffer = new TextEncoder().encode(buffer);
+      crypto.subtle.digest('SHA-256', hashBuffer).then(h => {
+        resolve("0x" + Array.from(new Uint8Array(h)).map(b => b.toString(16).padStart(2, '0')).join(''));
+      });
     };
     reader.onerror = reject;
     reader.readAsArrayBuffer(file);
   });
 }
+
   </script>
 </body>
 </html>
