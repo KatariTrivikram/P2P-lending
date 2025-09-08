@@ -865,7 +865,7 @@
 
     let contract;
 
-   async function connectWallet() {
+  async function connectWallet() {
   if (typeof window.ethereum !== 'undefined') {
     try {
       await window.ethereum.request({ method: 'eth_requestAccounts' });
@@ -873,8 +873,21 @@
       account = accounts[0];
       web3 = new Web3(window.ethereum);
       contract = new web3.eth.Contract(contractABI, contractAddress);
+
+      // Fetch lender address from contract
+      const lenderAddress = await contract.methods.lender().call();
+
       document.getElementById("walletAddress").style.display = "block";
       document.getElementById("walletAddress").innerText = "Connected: " + account;
+
+      // Show or hide reset button based on current account
+      const resetSection = document.getElementById('resetSection');
+      if (account.toLowerCase() === lenderAddress.toLowerCase()) {
+        resetSection.classList.add('show');
+      } else {
+        resetSection.classList.remove('show');
+      }
+
       showToast("Wallet connected!", "success");
     } catch (err) {
       console.error("Connection error:", err);
@@ -884,6 +897,7 @@
     showToast("MetaMask not installed!", "error");
   }
 }
+
 
 
 
@@ -973,18 +987,24 @@
     }
 
     async function resetLoanManually() {
-      try {
-        await contract.methods.resetLoan().send({ from: account });
-        document.getElementById("repayStatus").innerText = "Loan reset manually by lender.";
-        document.getElementById("repayStatus").classList.remove("text-danger");
-        document.getElementById("repayStatus").classList.add("text-success");
-        showToast("Loan reset successfully!", "success");
-      } catch (err) {
-        console.error(err);
-        document.getElementById("repayStatus").innerText = "Manual reset failed.";
-        showToast("Manual reset failed", "error");
-      }
+  try {
+    const lenderAddress = await contract.methods.lender().call();
+    if (account.toLowerCase() !== lenderAddress.toLowerCase()) {
+      showToast("Only lender can reset the loan.", "error");
+      return;
     }
+    await contract.methods.resetLoan().send({ from: account });
+    document.getElementById("repayStatus").innerText = "Loan reset manually by lender.";
+    document.getElementById("repayStatus").classList.remove("text-danger");
+    document.getElementById("repayStatus").classList.add("text-success");
+    showToast("Loan reset successfully!", "success");
+  } catch (err) {
+    console.error(err);
+    document.getElementById("repayStatus").innerText = "Manual reset failed.";
+    showToast("Manual reset failed", "error");
+  }
+}
+
 
     async function getFileHash(file) {
       return new Promise((resolve, reject) => {
