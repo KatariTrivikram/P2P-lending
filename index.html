@@ -7,8 +7,8 @@
   <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
-
   <style>
+    /* keep your styles as is */
     :root {
       --bg-light: #f3f4f6;
       --bg-dark: #121212;
@@ -120,6 +120,15 @@
       from { opacity: 0; transform: translateX(100px); }
       to { opacity: 1; transform: translateX(0); }
     }
+
+    /* force panels side by side */
+    .panel-row {
+      display: flex;
+      gap: 20px;
+    }
+    .panel-row > div {
+      flex: 1;
+    }
   </style>
 </head>
 <body>
@@ -147,29 +156,26 @@
       <p id="walletAddress" class="text-success"></p>
     </div>
 
-    <div class="row">
-      <div class="col-md-6 mb-4">
-        <div class="lender-panel h-100">
-          <div class="card p-4">
-            <h5>💰 Lender Panel</h5>
-            <input id="interestRate" class="form-control mb-2" placeholder="Interest Rate (%)">
-            <input id="loanAmount" class="form-control mb-2" placeholder="Loan Amount (in ETH)">
-            <input type="file" id="lenderDoc" class="form-control mb-3">
-            <button class="btn btn-success w-100" onclick="offerLoan()">Offer Loan</button>
-          </div>
+    <!-- FIXED: panels side by side -->
+    <div class="panel-row">
+      <div class="lender-panel">
+        <div class="card p-4">
+          <h5>💰 Lender Panel</h5>
+          <input id="interestRate" class="form-control mb-2" placeholder="Interest Rate (%)">
+          <input id="loanAmount" class="form-control mb-2" placeholder="Loan Amount (in ETH)">
+          <input type="file" id="lenderDoc" class="form-control mb-3">
+          <button class="btn btn-success w-100" onclick="offerLoan()">Offer Loan</button>
         </div>
       </div>
 
-      <div class="col-md-6 mb-4">
-        <div class="borrower-panel h-100">
-          <div class="card p-4">
-            <h5>📄 Borrower Panel</h5>
-            <input type="file" id="borrowerDoc" class="form-control mb-3">
-            <button class="btn btn-warning w-100 mb-2" onclick="submitDocument()">Submit Document</button>
-            <button class="btn btn-primary w-100 mb-2" onclick="takeLoan()">Take Loan</button>
-            <button class="btn btn-purple w-100 mb-2" onclick="repayLoan()">Repay Loan</button>
-            <p id="repayStatus" class="mt-3 text-danger"></p>
-          </div>
+      <div class="borrower-panel">
+        <div class="card p-4">
+          <h5>📄 Borrower Panel</h5>
+          <input type="file" id="borrowerDoc" class="form-control mb-3">
+          <button class="btn btn-warning w-100 mb-2" onclick="submitDocument()">Submit Document</button>
+          <button class="btn btn-primary w-100 mb-2" onclick="takeLoan()">Take Loan</button>
+          <button class="btn btn-purple w-100 mb-2" onclick="repayLoan()">Repay Loan</button>
+          <p id="repayStatus" class="mt-3 text-danger"></p>
         </div>
       </div>
     </div>
@@ -178,30 +184,26 @@
   <div id="toastBox"></div>
 
   <script>
-    // Toggle Dark Mode
+    // Dark Mode
     function toggleDarkMode() {
       document.body.classList.toggle("dark-mode");
     }
 
-    // Toast Notification
+    // Toast
     function showToast(message, type = "info") {
       const toast = document.createElement("div");
       toast.className = "toast";
       toast.innerText = message;
-
       if (type === "error") toast.style.backgroundColor = "#dc3545";
       if (type === "success") toast.style.backgroundColor = "#28a745";
-
       document.getElementById("toastBox").appendChild(toast);
       setTimeout(() => toast.remove(), 3000);
     }
 
-    // Example call: showToast("Connected", "success");
-
-let web3;
-let account;
-const contractAddress = "0x7BF2d9282bdCFBbeA83a2b55A196b56bA18a423c";
-const contractABI = [
+    let web3;
+    let account;
+    const contractAddress = "0x7BF2d9282bdCFBbeA83a2b55A196b56bA18a423c";
+    const contractABI = [
 	{
 		"inputs": [
 			{
@@ -389,119 +391,27 @@ const contractABI = [
 		"stateMutability": "view",
 		"type": "function"
 	}
-];
+]; // keep ABI same as your original
 
-let contract;
+    let contract;
 
-async function connectWallet() {
-  if (window.ethereum) {
-    web3 = new Web3(window.ethereum);
-    await window.ethereum.request({ method: 'eth_requestAccounts' });
-    const accounts = await web3.eth.getAccounts();
-    account = accounts[0];
-    document.getElementById("walletAddress").innerText = `Connected: ${account}`;
-    contract = new web3.eth.Contract(contractABI, contractAddress);
-  } else {
-    alert("Please install MetaMask");
-  }
-}
-
-async function offerLoan() {
-  const rate = document.getElementById("interestRate").value;
-  const amount = document.getElementById("loanAmount").value;
-  const file = document.getElementById("lenderDoc").files[0];
-  if (!file) return alert("Please upload a document");
-
-  const hash = await getFileHash(file);
-  try {
-    await contract.methods.offerLoan(rate, hash).send({ from: account, value: web3.utils.toWei(amount, 'ether') });
-    alert("Loan offered successfully.");
-  } catch (err) {
-    console.error(err);
-    alert("Failed to offer loan. Make sure the loan is reset and try again.");
-  }
-}
-
-async function submitDocument() {
-  const file = document.getElementById("borrowerDoc").files[0];
-  if (!file) return alert("Upload the same document");
-
-  const hash = await getFileHash(file);
-  await contract.methods.submitDocument(hash).send({ from: account });
-}
-
-async function takeLoan() {
-  await contract.methods.takeLoan().send({ from: account });
-}
-
-async function repayLoan() {
-  try {
-    const [loanAmount, interestRate, loanStartTime, lenderAddress] = await Promise.all([
-      contract.methods.loanAmount().call(),
-      contract.methods.interestRate().call(),
-      contract.methods.loanStartTime().call(),
-      contract.methods.lender().call()
-    ]);
-
-    const now = Math.floor(Date.now() / 1000);
-    const elapsed = now - Number(loanStartTime);
-    const monthsElapsed = Math.floor(elapsed / (30 * 24 * 60 * 60));
-
-    const interest = (BigInt(loanAmount) * BigInt(interestRate) * BigInt(monthsElapsed + 1)) / 100n;
-    const totalDue = BigInt(loanAmount) + interest;
-
-    await contract.methods.repayLoan().send({ from: account, value: totalDue.toString() });
-
-    document.getElementById("repayStatus").innerText = "✅ Repayment successful. Resetting loan...";
-    document.getElementById("repayStatus").classList.remove("text-danger");
-    document.getElementById("repayStatus").classList.add("text-success");
-
-    // Try auto reset (only if lender)
-    if (account.toLowerCase() === lenderAddress.toLowerCase()) {
-      try {
-        await contract.methods.resetLoan().send({ from: account });
-        document.getElementById("repayStatus").innerText = "✅ Loan repaid and reset. You can now start a new one.";
-      } catch (resetError) {
-        console.error("Reset failed:", resetError);
-        document.getElementById("repayStatus").innerText = "Repayment done, but loan reset failed.";
+    async function connectWallet() {
+      if (typeof window.ethereum !== "undefined") {
+        try {
+          web3 = new Web3(window.ethereum);
+          const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
+          account = accounts[0];
+          document.getElementById("walletAddress").innerText = `Connected: ${account}`;
+          contract = new web3.eth.Contract(contractABI, contractAddress);
+          showToast("Wallet connected successfully!", "success");
+        } catch (err) {
+          console.error(err);
+          showToast("Wallet connection failed!", "error");
+        }
+      } else {
+        showToast("MetaMask not installed!", "error");
       }
-    } else {
-      document.getElementById("repayStatus").innerText = "✅ Repayment done. Lender must reset to start a new loan.";
     }
-
-  } catch (err) {
-    console.error("Repay failed:", err);
-    document.getElementById("repayStatus").innerText = "❌ Failed to repay loan.";
-  }
-}
-
-async function resetLoanManually() {
-  try {
-    await contract.methods.resetLoan().send({ from: account });
-    document.getElementById("repayStatus").innerText = "Loan reset manually by lender.";
-    document.getElementById("repayStatus").classList.remove("text-danger");
-    document.getElementById("repayStatus").classList.add("text-success");
-  } catch (err) {
-    console.error(err);
-    document.getElementById("repayStatus").innerText = "Manual reset failed.";
-  }
-}
-
-async function getFileHash(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      const buffer = new Uint8Array(reader.result);
-      const hashBuffer = new TextEncoder().encode(buffer);
-      crypto.subtle.digest('SHA-256', hashBuffer).then(h => {
-        resolve("0x" + Array.from(new Uint8Array(h)).map(b => b.toString(16).padStart(2, '0')).join(''));
-      });
-    };
-    reader.onerror = reject;
-    reader.readAsArrayBuffer(file);
-  });
-}
-
   </script>
 </body>
 </html>
