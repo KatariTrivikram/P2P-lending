@@ -7,7 +7,6 @@
   <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 
   <style>
    :root {
@@ -18,333 +17,35 @@
     }
 
     body {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      background-attachment: fixed;
+      background: linear-gradient(to right, #e0f7fa, #ede7f6);
       transition: all 0.4s ease-in-out;
       font-family: 'Segoe UI', sans-serif;
-      min-height: 100vh;
-      position: relative;
-    }
-
-    body::before {
-      content: '';
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: 
-        radial-gradient(circle at 20% 20%, rgba(255, 107, 107, 0.3) 0%, transparent 50%),
-        radial-gradient(circle at 80% 80%, rgba(74, 144, 226, 0.3) 0%, transparent 50%),
-        radial-gradient(circle at 40% 40%, rgba(245, 101, 101, 0.2) 0%, transparent 50%),
-        linear-gradient(135deg, #ff9a9e 0%, #fecfef 25%, #fecfef 75%, #ffd1ff 100%);
-      z-index: -1;
-      animation: gradientShift 8s ease-in-out infinite;
-    }
-
-    @keyframes gradientShift {
-      0%, 100% {
-        background: 
-          radial-gradient(circle at 20% 20%, rgba(255, 107, 107, 0.3) 0%, transparent 50%),
-          radial-gradient(circle at 80% 80%, rgba(74, 144, 226, 0.3) 0%, transparent 50%),
-          radial-gradient(circle at 40% 40%, rgba(245, 101, 101, 0.2) 0%, transparent 50%),
-          linear-gradient(135deg, #ff9a9e 0%, #fecfef 25%, #fecfef 75%, #ffd1ff 100%);
-      }
-      25% {
-        background: 
-          radial-gradient(circle at 60% 30%, rgba(129, 236, 236, 0.3) 0%, transparent 50%),
-          radial-gradient(circle at 20% 70%, rgba(255, 154, 158, 0.3) 0%, transparent 50%),
-          radial-gradient(circle at 80% 20%, rgba(161, 196, 253, 0.2) 0%, transparent 50%),
-          linear-gradient(135deg, #a8edea 0%, #fed6e3 25%, #fed6e3 75%, #d299c2 100%);
-      }
-      50% {
-        background: 
-          radial-gradient(circle at 80% 60%, rgba(255, 177, 153, 0.3) 0%, transparent 50%),
-          radial-gradient(circle at 10% 20%, rgba(255, 206, 84, 0.3) 0%, transparent 50%),
-          radial-gradient(circle at 60% 80%, rgba(108, 92, 231, 0.2) 0%, transparent 50%),
-          linear-gradient(135deg, #ffecd2 0%, #fcb69f 25%, #fcb69f 75%, #ff8a80 100%);
-      }
-      75% {
-        background: 
-          radial-gradient(circle at 30% 80%, rgba(168, 237, 234, 0.3) 0%, transparent 50%),
-          radial-gradient(circle at 90% 10%, rgba(255, 158, 128, 0.3) 0%, transparent 50%),
-          radial-gradient(circle at 20% 40%, rgba(209, 153, 194, 0.2) 0%, transparent 50%),
-          linear-gradient(135deg, #a8e6cf 0%, #dcedc1 25%, #dcedc1 75%, #ffd3a5 100%);
-      }
     }
 
     body.dark-mode {
-      background: linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 100%);
+      background: linear-gradient(to right, #121212, #1f1f1f);
       color: var(--text-dark);
-    }
-
-    body.dark-mode::before {
-      background: 
-        radial-gradient(circle at 20% 20%, rgba(67, 56, 202, 0.4) 0%, transparent 50%),
-        radial-gradient(circle at 80% 80%, rgba(147, 51, 234, 0.4) 0%, transparent 50%),
-        radial-gradient(circle at 40% 40%, rgba(99, 102, 241, 0.3) 0%, transparent 50%),
-        linear-gradient(135deg, #1a1a2e 0%, #16213e 25%, #0f3460 75%, #533483 100%);
-      animation: darkGradientShift 10s ease-in-out infinite;
-    }
-
-    @keyframes darkGradientShift {
-      0%, 100% {
-        background: 
-          radial-gradient(circle at 20% 20%, rgba(67, 56, 202, 0.4) 0%, transparent 50%),
-          radial-gradient(circle at 80% 80%, rgba(147, 51, 234, 0.4) 0%, transparent 50%),
-          radial-gradient(circle at 40% 40%, rgba(99, 102, 241, 0.3) 0%, transparent 50%),
-          linear-gradient(135deg, #1a1a2e 0%, #16213e 25%, #0f3460 75%, #533483 100%);
-      }
-      50% {
-        background: 
-          radial-gradient(circle at 70% 30%, rgba(99, 102, 241, 0.4) 0%, transparent 50%),
-          radial-gradient(circle at 30% 70%, rgba(168, 85, 247, 0.4) 0%, transparent 50%),
-          radial-gradient(circle at 90% 20%, rgba(59, 130, 246, 0.3) 0%, transparent 50%),
-          linear-gradient(135deg, #0f172a 0%, #1e293b 25%, #334155 75%, #475569 100%);
-      }
     }
 
     .container {
-      background: rgba(255, 255, 255, 0.15);
-      backdrop-filter: blur(25px);
-      border: 2px solid rgba(255, 255, 255, 0.3);
-      border-radius: 25px;
-      box-shadow: 
-        0 15px 35px rgba(31, 38, 135, 0.2),
-        0 5px 15px rgba(0, 0, 0, 0.1),
-        inset 0 1px 0 rgba(255, 255, 255, 0.3);
-      transition: all 0.4s ease;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .container::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+      background: rgba(255, 255, 255, 0.85);
+      border-radius: 20px;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+      transition: 0.4s;
     }
 
     body.dark-mode .container {
-      background: rgba(15, 23, 42, 0.8);
-      border: 2px solid rgba(100, 116, 139, 0.3);
+      background: rgba(33, 33, 33, 0.85);
       color: var(--text-dark);
-      box-shadow: 
-        0 15px 35px rgba(0, 0, 0, 0.4),
-        0 5px 15px rgba(0, 0, 0, 0.2),
-        inset 0 1px 0 rgba(255, 255, 255, 0.1);
     }
 
     .title {
       font-size: 2.7rem;
-      font-weight: 900;
+      font-weight: bold;
       text-align: center;
-      background: linear-gradient(135deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4);
-      background-size: 300% 300%;
+      background: linear-gradient(to right, #8e44ad, #3498db);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
-      animation: gradientText 4s ease-in-out infinite;
-      text-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-      margin-bottom: 2rem;
-    }
-
-    @keyframes gradientText {
-      0%, 100% {
-        background-position: 0% 50%;
-      }
-      50% {
-        background-position: 100% 50%;
-      }
-    }
-
-    .wallet-section {
-      background: rgba(255, 255, 255, 0.2);
-      backdrop-filter: blur(15px);
-      border: 2px solid rgba(255, 255, 255, 0.3);
-      border-radius: 25px;
-      padding: 2rem;
-      margin-bottom: 2rem;
-      text-align: center;
-      position: relative;
-      overflow: hidden;
-      box-shadow: 
-        0 10px 30px rgba(0, 0, 0, 0.1),
-        inset 0 1px 0 rgba(255, 255, 255, 0.4);
-    }
-
-    .wallet-section::before {
-      content: '';
-      position: absolute;
-      top: -50%;
-      left: -50%;
-      width: 200%;
-      height: 200%;
-      background: conic-gradient(from 0deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-      animation: rotate 8s linear infinite;
-      z-index: 0;
-    }
-
-    .wallet-section > * {
-      position: relative;
-      z-index: 1;
-    }
-
-    @keyframes rotate {
-      from {
-        transform: rotate(0deg);
-      }
-      to {
-        transform: rotate(360deg);
-      }
-    }
-
-    body.dark-mode .wallet-section {
-      background: rgba(30, 41, 59, 0.8);
-      border: 2px solid rgba(100, 116, 139, 0.4);
-    }
-
-    .wallet-section h5 {
-      color: white;
-      margin-bottom: 1rem;
-    }
-
-    .action-buttons {
-      display: flex;
-      gap: 1rem;
-      justify-content: center;
-      margin-bottom: 2rem;
-      flex-wrap: wrap;
-    }
-
-    .action-btn {
-      background: rgba(255, 255, 255, 0.15);
-      backdrop-filter: blur(15px);
-      border: 2px solid rgba(255, 255, 255, 0.3);
-      border-radius: 25px;
-      padding: 1.2rem 2.5rem;
-      color: white;
-      font-weight: 700;
-      font-size: 1.1rem;
-      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 0.7rem;
-      min-width: 200px;
-      justify-content: center;
-      position: relative;
-      overflow: hidden;
-      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-      box-shadow: 
-        0 8px 25px rgba(0, 0, 0, 0.1),
-        inset 0 1px 0 rgba(255, 255, 255, 0.3);
-    }
-
-    .action-btn::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-      transition: left 0.6s;
-    }
-
-    .action-btn:hover::before {
-      left: 100%;
-    }
-
-    .action-btn:hover {
-      transform: translateY(-8px) scale(1.05);
-      box-shadow: 
-        0 20px 40px rgba(0, 0, 0, 0.2),
-        inset 0 1px 0 rgba(255, 255, 255, 0.4);
-      background: rgba(255, 255, 255, 0.25);
-      border-color: rgba(255, 255, 255, 0.5);
-    }
-
-    .action-btn.active {
-      background: linear-gradient(135deg, #ff6b6b, #4ecdc4);
-      transform: translateY(-5px) scale(1.02);
-      box-shadow: 
-        0 15px 35px rgba(255, 107, 107, 0.3),
-        inset 0 1px 0 rgba(255, 255, 255, 0.4);
-      border-color: rgba(255, 255, 255, 0.6);
-    }
-
-    .panel {
-      background: rgba(255, 255, 255, 0.15);
-      backdrop-filter: blur(25px);
-      border: 2px solid rgba(255, 255, 255, 0.25);
-      border-radius: 30px;
-      padding: 2.5rem;
-      margin: 2rem 0;
-      opacity: 0;
-      transform: translateY(30px);
-      transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-      display: none;
-      position: relative;
-      overflow: hidden;
-      box-shadow: 
-        0 20px 50px rgba(0, 0, 0, 0.1),
-        inset 0 1px 0 rgba(255, 255, 255, 0.3);
-    }
-
-    .panel::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 2px;
-      background: linear-gradient(90deg, 
-        transparent, 
-        rgba(255, 107, 107, 0.6), 
-        rgba(78, 205, 196, 0.6), 
-        rgba(69, 183, 209, 0.6), 
-        transparent
-      );
-      animation: shimmer 3s ease-in-out infinite;
-    }
-
-    @keyframes shimmer {
-      0%, 100% { opacity: 0.3; }
-      50% { opacity: 1; }
-    }
-
-    .panel.show {
-      opacity: 1;
-      transform: translateY(0) scale(1);
-      display: block;
-      animation: panelSlideIn 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-    }
-
-    @keyframes panelSlideIn {
-      from {
-        opacity: 0;
-        transform: translateY(50px) scale(0.9) rotateX(10deg);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0) scale(1) rotateX(0deg);
-      }
-    }
-
-    body.dark-mode .panel {
-      background: rgba(30, 41, 59, 0.8);
-      border: 2px solid rgba(100, 116, 139, 0.3);
-    }
-
-    .panel h5 {
-      color: white;
-      font-weight: 700;
-      margin-bottom: 1.5rem;
-      text-align: center;
-      font-size: 1.5rem;
     }
 
     .lender-panel {
@@ -372,22 +73,7 @@
     }
 
     .form-control {
-      background: rgba(255, 255, 255, 0.1);
-      border: 1px solid rgba(255, 255, 255, 0.2);
       border-radius: 12px;
-      color: white;
-      transition: all 0.3s ease;
-    }
-
-    .form-control:focus {
-      background: rgba(255, 255, 255, 0.15);
-      border-color: rgba(255, 255, 255, 0.4);
-      color: white;
-      box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.1);
-    }
-
-    .form-control::placeholder {
-      color: rgba(255, 255, 255, 0.7);
     }
 
     .btn {
@@ -402,20 +88,8 @@
     .btn-purple  { background: linear-gradient(to right, #8b5cf6, #a78bfa); color: white; border: none; }
     .btn-reset   { background: linear-gradient(to right, #14b8a6, #2dd4bf); color: white; border: none; }
 
-    .btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
-    }
-
     #repayStatus {
       font-weight: bold;
-      background: rgba(255, 255, 255, 0.1);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      border-radius: 15px;
-      padding: 1rem;
-      color: white;
-      text-align: center;
-      backdrop-filter: blur(10px);
     }
 
     .dark-toggle {
@@ -423,39 +97,6 @@
       top: 1rem;
       right: 1rem;
       z-index: 999;
-    }
-
-    .reset-section {
-      position: absolute;
-      top: 1rem;
-      left: 1rem;
-      opacity: 0;
-      transition: all 0.3s ease;
-      z-index: 998;
-    }
-
-    .reset-section.show {
-      opacity: 1;
-    }
-
-    .history-btn-fixed {
-      position: fixed;
-      bottom: 2rem;
-      right: 2rem;
-      background: rgba(255, 255, 255, 0.1);
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      border-radius: 50px;
-      padding: 1rem;
-      color: white;
-      transition: all 0.3s ease;
-      z-index: 998;
-    }
-
-    .history-btn-fixed:hover {
-      transform: scale(1.1);
-      background: rgba(255, 255, 255, 0.2);
-      color: white;
     }
 
     /* Toast styles */
@@ -506,43 +147,10 @@
       background-color: #1f1f1f;
       color: white;
     }
-
-    #walletAddress {
-      background: rgba(16, 185, 129, 0.1);
-      border: 1px solid rgba(16, 185, 129, 0.3);
-      border-radius: 12px;
-      padding: 0.75rem;
-      color: #10b981;
-      font-weight: 600;
-      font-family: 'Monaco', monospace;
-      word-break: break-all;
-      margin-top: 1rem;
-    }
-
-    @media (max-width: 768px) {
-      .action-buttons {
-        flex-direction: column;
-        align-items: center;
-      }
-      .action-btn {
-        width: 100%;
-        max-width: 300px;
-      }
-    }
   </style>
 </head>
 <body>
-  <button class="btn btn-dark dark-toggle" onclick="toggleDarkMode()">🌓 Toggle Dark Mode</button>
-
-  <div class="reset-section" id="resetSection">
-    <button onclick="resetLoanManually()" class="btn btn-reset">
-      <i class="fas fa-redo"></i> Reset Loan
-    </button>
-  </div>
-
-  <button class="btn history-btn-fixed" onclick="showHistoryModal()">
-    <i class="fas fa-history"></i> History
-  </button>
+   <button class="btn btn-dark dark-toggle" onclick="toggleDarkMode()">🌓 Toggle Dark Mode</button>
 
   <div class="container py-5 px-4">
     <h2 class="title mb-4">📜 Document-Backed Lending DApp</h2>
@@ -556,44 +164,49 @@
       autoplay>
     </lottie-player>
 
-    <div class="wallet-section">
+    <div class="text-end mb-3">
+      <button onclick="resetLoanManually()" class="btn btn-reset btn-sm">🔁 Reset Loan (Lender Only)</button>
+    </div>
+
+    <div class="card mb-4 p-4">
       <h5>🔌 Wallet Connection</h5>
       <button class="btn btn-primary mb-2" onclick="connectWallet()">Connect Wallet</button>
-      <p id="walletAddress" class="text-success" style="display: none;"></p>
+      <p id="walletAddress" class="text-success"></p>
     </div>
 
-    <div class="action-buttons">
-      <button class="action-btn" onclick="showPanel('lender')" id="lenderBtn">
-        <i class="fas fa-hand-holding-usd"></i>
-        Offer Loan
-      </button>
-      <button class="action-btn" onclick="showPanel('borrower')" id="borrowerBtn">
-        <i class="fas fa-money-bill-wave"></i>
-        Borrow Loan
-      </button>
-    </div>
+    <div class="row">
+      <div class="col-md-6 mb-4">
+        <div class="lender-panel h-100">
+          <div class="card p-4">
+            <h5>💰 Lender Panel</h5>
+            <input id="interestRate" class="form-control mb-2" placeholder="Interest Rate (%)">
+            <input id="loanAmount" class="form-control mb-2" placeholder="Loan Amount (in ETH)">
+            <input type="file" id="lenderDoc" class="form-control mb-3">
+            <button class="btn btn-success w-100" onclick="offerLoan()">Offer Loan</button>
+          </div>
+        </div>
+      </div>
 
-    <!-- Lender Panel -->
-    <div class="panel" id="lenderPanel">
-      <h5>💰 Lender Panel</h5>
-      <input id="interestRate" class="form-control mb-2" placeholder="Interest Rate (%)">
-      <input id="loanAmount" class="form-control mb-2" placeholder="Loan Amount (in ETH)">
-      <input type="file" id="lenderDoc" class="form-control mb-3">
-      <button class="btn btn-success w-100" onclick="offerLoan()">Offer Loan</button>
-    </div>
-
-    <!-- Borrower Panel -->
-    <div class="panel" id="borrowerPanel">
-      <h5>📄 Borrower Panel</h5>
-      <input type="file" id="borrowerDoc" class="form-control mb-3">
-      <button class="btn btn-warning w-100 mb-2" onclick="submitDocument()">Submit Document</button>
-      <button class="btn btn-primary w-100 mb-2" onclick="takeLoan()">Take Loan</button>
-      <button class="btn btn-purple w-100 mb-2" onclick="repayLoan()">Repay Loan</button>
-      <p id="repayStatus" class="mt-3 text-danger"></p>
+      <div class="col-md-6 mb-4">
+        <div class="borrower-panel h-100">
+          <div class="card p-4">
+            <h5>📄 Borrower Panel</h5>
+            <input type="file" id="borrowerDoc" class="form-control mb-3">
+            <button class="btn btn-warning w-100 mb-2" onclick="submitDocument()">Submit Document</button>
+            <button class="btn btn-primary w-100 mb-2" onclick="takeLoan()">Take Loan</button>
+            <button class="btn btn-purple w-100 mb-2" onclick="repayLoan()">Repay Loan</button>
+            <p id="repayStatus" class="mt-3 text-danger"></p>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
   <div id="toastBox"></div>
+
+  <div class="text-end mb-4">
+    <button class="btn btn-secondary" onclick="showHistoryModal()">📜 Show History</button>
+  </div>
 
   <!-- History Modal -->
   <div id="historyModal" class="modal-background" onclick="closeModal(event)">
@@ -605,48 +218,6 @@
   </div>
 
   <script>
-    let currentPanel = null;
-
-    // Show Panel Function
-    function showPanel(type) {
-      // Hide all panels first
-      document.querySelectorAll('.panel').forEach(panel => {
-        panel.classList.remove('show');
-        setTimeout(() => {
-          if (!panel.classList.contains('show')) {
-            panel.style.display = 'none';
-          }
-        }, 300);
-      });
-
-      // Remove active class from all buttons
-      document.querySelectorAll('.action-btn').forEach(btn => {
-        btn.classList.remove('active');
-      });
-
-      // Show selected panel after a delay
-      setTimeout(() => {
-        const panel = document.getElementById(type + 'Panel');
-        const btn = document.getElementById(type + 'Btn');
-        
-        if (panel && btn) {
-          panel.style.display = 'block';
-          setTimeout(() => panel.classList.add('show'), 50);
-          btn.classList.add('active');
-          
-          currentPanel = type;
-          
-          // Show/hide reset button based on panel type
-          const resetSection = document.getElementById('resetSection');
-          if (type === 'lender') {
-            resetSection.classList.add('show');
-          } else {
-            resetSection.classList.remove('show');
-          }
-        }
-      }, 300);
-    }
-
     // Toggle Dark Mode
     function toggleDarkMode() {
       document.body.classList.toggle("dark-mode");
@@ -665,330 +236,313 @@
       setTimeout(() => toast.remove(), 3000);
     }
 
-    // Original blockchain code starts here
-    let web3;
-    let account;
-    const contractAddress = "0xC2e0620752E4115cA679d71Ad2c9ee63f2d046Fc";
-    const contractABI = [
-      {
-        "inputs": [
-          {
-            "internalType": "uint256",
-            "name": "_interestRate",
-            "type": "uint256"
-          },
-          {
-            "internalType": "bytes32",
-            "name": "_docHash",
-            "type": "bytes32"
-          }
-        ],
-        "name": "offerLoan",
-        "outputs": [],
-        "stateMutability": "payable",
-        "type": "function"
-      },
-      {
-        "inputs": [],
-        "name": "repayLoan",
-        "outputs": [],
-        "stateMutability": "payable",
-        "type": "function"
-      },
-      {
-        "inputs": [],
-        "name": "resetLoan",
-        "outputs": [],
-        "stateMutability": "nonpayable",
-        "type": "function"
-      },
-      {
-        "inputs": [
-          {
-            "internalType": "bytes32",
-            "name": "_userDocHash",
-            "type": "bytes32"
-          }
-        ],
-        "name": "submitDocument",
-        "outputs": [],
-        "stateMutability": "nonpayable",
-        "type": "function"
-      },
-      {
-        "inputs": [],
-        "name": "takeLoan",
-        "outputs": [],
-        "stateMutability": "nonpayable",
-        "type": "function"
-      },
-      {
-        "inputs": [],
-        "stateMutability": "nonpayable",
-        "type": "constructor"
-      },
-      {
-        "inputs": [],
-        "name": "borrower",
-        "outputs": [
-          {
-            "internalType": "address payable",
-            "name": "",
-            "type": "address"
-          }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-      },
-      {
-        "inputs": [],
-        "name": "docSubmitted",
-        "outputs": [
-          {
-            "internalType": "bool",
-            "name": "",
-            "type": "bool"
-          }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-      },
-      {
-        "inputs": [],
-        "name": "documentHash",
-        "outputs": [
-          {
-            "internalType": "bytes32",
-            "name": "",
-            "type": "bytes32"
-          }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-      },
-      {
-        "inputs": [],
-        "name": "interestRate",
-        "outputs": [
-          {
-            "internalType": "uint256",
-            "name": "",
-            "type": "uint256"
-          }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-      },
-      {
-        "inputs": [],
-        "name": "lender",
-        "outputs": [
-          {
-            "internalType": "address payable",
-            "name": "",
-            "type": "address"
-          }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-      },
-      {
-        "inputs": [],
-        "name": "loanAmount",
-        "outputs": [
-          {
-            "internalType": "uint256",
-            "name": "",
-            "type": "uint256"
-          }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-      },
-      {
-        "inputs": [],
-        "name": "loanOffered",
-        "outputs": [
-          {
-            "internalType": "bool",
-            "name": "",
-            "type": "bool"
-          }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-      },
-      {
-        "inputs": [],
-        "name": "loanRepaid",
-        "outputs": [
-          {
-            "internalType": "bool",
-            "name": "",
-            "type": "bool"
-          }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-      },
-      {
-        "inputs": [],
-        "name": "loanStartTime",
-        "outputs": [
-          {
-            "internalType": "uint256",
-            "name": "",
-            "type": "uint256"
-          }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-      },
-      {
-        "inputs": [],
-        "name": "loanTaken",
-        "outputs": [
-          {
-            "internalType": "bool",
-            "name": "",
-            "type": "bool"
-          }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-      }
-    ];
+    // Example call: showToast("Connected", "success");
 
-    let contract;
+let web3;
+let account;
+const contractAddress = "0xC2e0620752E4115cA679d71Ad2c9ee63f2d046Fc";
+const contractABI = [
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_interestRate",
+				"type": "uint256"
+			},
+			{
+				"internalType": "bytes32",
+				"name": "_docHash",
+				"type": "bytes32"
+			}
+		],
+		"name": "offerLoan",
+		"outputs": [],
+		"stateMutability": "payable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "repayLoan",
+		"outputs": [],
+		"stateMutability": "payable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "resetLoan",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "bytes32",
+				"name": "_userDocHash",
+				"type": "bytes32"
+			}
+		],
+		"name": "submitDocument",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "takeLoan",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"stateMutability": "nonpayable",
+		"type": "constructor"
+	},
+	{
+		"inputs": [],
+		"name": "borrower",
+		"outputs": [
+			{
+				"internalType": "address payable",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "docSubmitted",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "documentHash",
+		"outputs": [
+			{
+				"internalType": "bytes32",
+				"name": "",
+				"type": "bytes32"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "interestRate",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "lender",
+		"outputs": [
+			{
+				"internalType": "address payable",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "loanAmount",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "loanOffered",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "loanRepaid",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "loanStartTime",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "loanTaken",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	}
+];
 
-    async function connectWallet() {
-      if (window.ethereum) {
-        web3 = new Web3(window.ethereum);
-        await window.ethereum.request({ method: 'eth_requestAccounts' });
-        const accounts = await web3.eth.getAccounts();
-        account = accounts[0];
-        document.getElementById("walletAddress").innerText = `Connected: ${account}`;
-        document.getElementById("walletAddress").style.display = 'block';
-        contract = new web3.eth.Contract(contractABI, contractAddress);
-        showToast("Wallet connected!", "success");
-      } else {
-        alert("Please install MetaMask");
-      }
-    }
+let contract;
 
-    async function offerLoan() {
-      const rate = document.getElementById("interestRate").value;
-      const amount = document.getElementById("loanAmount").value;
-      const file = document.getElementById("lenderDoc").files[0];
-      if (!file) return alert("Please upload a document");
+async function connectWallet() {
+  if (window.ethereum) {
+    web3 = new Web3(window.ethereum);
+    await window.ethereum.request({ method: 'eth_requestAccounts' });
+    const accounts = await web3.eth.getAccounts();
+    account = accounts[0];
+    document.getElementById("walletAddress").innerText = `Connected: ${account}`;
+    contract = new web3.eth.Contract(contractABI, contractAddress);
+  } else {
+    alert("Please install MetaMask");
+  }
+}
 
-      const hash = await getFileHash(file);
-      try {
-        await contract.methods.offerLoan(rate, hash).send({ from: account, value: web3.utils.toWei(amount, 'ether') });
-        alert("Loan offered successfully.");
-        showToast("Loan offered successfully!", "success");
-      } catch (err) {
-        console.error(err);
-        alert("Failed to offer loan. Make sure the loan is reset and try again.");
-        showToast("Failed to offer loan", "error");
-      }
-    }
+async function offerLoan() {
+  const rate = document.getElementById("interestRate").value;
+  const amount = document.getElementById("loanAmount").value;
+  const file = document.getElementById("lenderDoc").files[0];
+  if (!file) return alert("Please upload a document");
 
-    async function submitDocument() {
-      const file = document.getElementById("borrowerDoc").files[0];
-      if (!file) return alert("Upload the same document");
+  const hash = await getFileHash(file);
+  try {
+    await contract.methods.offerLoan(rate, hash).send({ from: account, value: web3.utils.toWei(amount, 'ether') });
+    alert("Loan offered successfully.");
+  } catch (err) {
+    console.error(err);
+    alert("Failed to offer loan. Make sure the loan is reset and try again.");
+  }
+}
 
-      const hash = await getFileHash(file);
-      try {
-        await contract.methods.submitDocument(hash).send({ from: account });
-        showToast("Document submitted!", "success");
-      } catch (err) {
-        console.error(err);
-        showToast("Failed to submit document", "error");
-      }
-    }
+async function submitDocument() {
+  const file = document.getElementById("borrowerDoc").files[0];
+  if (!file) return alert("Upload the same document");
 
-    async function takeLoan() {
-      try {
-        await contract.methods.takeLoan().send({ from: account });
-        showToast("Loan taken successfully!", "success");
-      } catch (err) {
-        console.error(err);
-        showToast("Failed to take loan", "error");
-      }
-    }
+  const hash = await getFileHash(file);
+  await contract.methods.submitDocument(hash).send({ from: account });
+}
 
-    async function repayLoan() {
-      try {
-        const [loanAmount, interestRate, loanStartTime, lenderAddress] = await Promise.all([
-          contract.methods.loanAmount().call(),
-          contract.methods.interestRate().call(),
-          contract.methods.loanStartTime().call(),
-          contract.methods.lender().call()
-        ]);
+async function takeLoan() {
+  await contract.methods.takeLoan().send({ from: account });
+}
 
-        const now = Math.floor(Date.now() / 1000);
-        const elapsed = now - Number(loanStartTime);
-        const monthsElapsed = Math.floor(elapsed / (30 * 24 * 60 * 60));
+async function repayLoan() {
+  try {
+    const [loanAmount, interestRate, loanStartTime, lenderAddress] = await Promise.all([
+      contract.methods.loanAmount().call(),
+      contract.methods.interestRate().call(),
+      contract.methods.loanStartTime().call(),
+      contract.methods.lender().call()
+    ]);
 
-        const interest = (BigInt(loanAmount) * BigInt(interestRate) * BigInt(monthsElapsed + 1)) / 100n;
-        const totalDue = BigInt(loanAmount) + interest;
+    const now = Math.floor(Date.now() / 1000);
+    const elapsed = now - Number(loanStartTime);
+    const monthsElapsed = Math.floor(elapsed / (30 * 24 * 60 * 60));
 
-        await contract.methods.repayLoan().send({ from: account, value: totalDue.toString() });
+    const interest = (BigInt(loanAmount) * BigInt(interestRate) * BigInt(monthsElapsed + 1)) / 100n;
+    const totalDue = BigInt(loanAmount) + interest;
 
-        document.getElementById("repayStatus").innerText = "✅ Repayment successful. Resetting loan...";
-        document.getElementById("repayStatus").classList.remove("text-danger");
-        document.getElementById("repayStatus").classList.add("text-success");
+    await contract.methods.repayLoan().send({ from: account, value: totalDue.toString() });
 
-        // Try auto reset (only if lender)
-        if (account.toLowerCase() === lenderAddress.toLowerCase()) {
-          try {
-            await contract.methods.resetLoan().send({ from: account });
-            document.getElementById("repayStatus").innerText = "✅ Loan repaid and reset. You can now start a new one.";
-          } catch (resetError) {
-            console.error("Reset failed:", resetError);
-            document.getElementById("repayStatus").innerText = "Repayment done, but loan reset failed.";
-          }
-        } else {
-          document.getElementById("repayStatus").innerText = "✅ Repayment done. Lender must reset to start a new loan.";
-        }
+    document.getElementById("repayStatus").innerText = "✅ Repayment successful. Resetting loan...";
+    document.getElementById("repayStatus").classList.remove("text-danger");
+    document.getElementById("repayStatus").classList.add("text-success");
 
-        showToast("Loan repaid successfully!", "success");
-      } catch (err) {
-        console.error("Repay failed:", err);
-        document.getElementById("repayStatus").innerText = "❌ Failed to repay loan.";
-        showToast("Failed to repay loan", "error");
-      }
-    }
-
-    async function resetLoanManually() {
+    // Try auto reset (only if lender)
+    if (account.toLowerCase() === lenderAddress.toLowerCase()) {
       try {
         await contract.methods.resetLoan().send({ from: account });
-        document.getElementById("repayStatus").innerText = "Loan reset manually by lender.";
-        document.getElementById("repayStatus").classList.remove("text-danger");
-        document.getElementById("repayStatus").classList.add("text-success");
-        showToast("Loan reset successfully!", "success");
-      } catch (err) {
-        console.error(err);
-        document.getElementById("repayStatus").innerText = "Manual reset failed.";
-        showToast("Manual reset failed", "error");
+        document.getElementById("repayStatus").innerText = "✅ Loan repaid and reset. You can now start a new one.";
+      } catch (resetError) {
+        console.error("Reset failed:", resetError);
+        document.getElementById("repayStatus").innerText = "Repayment done, but loan reset failed.";
       }
+    } else {
+      document.getElementById("repayStatus").innerText = "✅ Repayment done. Lender must reset to start a new loan.";
     }
 
-    async function getFileHash(file) {
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => {
-          const buffer = new Uint8Array(reader.result);
-          const hashBuffer = new TextEncoder().encode(buffer);
-          crypto.subtle.digest('SHA-256', hashBuffer).then(h => {
-            resolve("0x" + Array.from(new Uint8Array(h)).map(b => b.toString(16).padStart(2, '0')).join(''));
-          });
-        };
-        reader.onerror = reject;
-        reader.readAsArrayBuffer(file);
+  } catch (err) {
+    console.error("Repay failed:", err);
+    document.getElementById("repayStatus").innerText = "❌ Failed to repay loan.";
+  }
+}
+
+async function resetLoanManually() {
+  try {
+    await contract.methods.resetLoan().send({ from: account });
+    document.getElementById("repayStatus").innerText = "Loan reset manually by lender.";
+    document.getElementById("repayStatus").classList.remove("text-danger");
+    document.getElementById("repayStatus").classList.add("text-success");
+  } catch (err) {
+    console.error(err);
+    document.getElementById("repayStatus").innerText = "Manual reset failed.";
+  }
+}
+
+async function getFileHash(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const buffer = new Uint8Array(reader.result);
+      const hashBuffer = new TextEncoder().encode(buffer);
+      crypto.subtle.digest('SHA-256', hashBuffer).then(h => {
+        resolve("0x" + Array.from(new Uint8Array(h)).map(b => b.toString(16).padStart(2, '0')).join(''));
       });
-    }
+    };
+    reader.onerror = reject;
+    reader.readAsArrayBuffer(file);
+  });
+}
+
+
 
     // Utility: show history modal
     async function showHistoryModal() {
