@@ -2,9 +2,8 @@
 
 A decentralized peer-to-peer lending platform on **Ethereum**. Lenders and borrowers transact directly through a **Solidity smart contract**, with a hash of a shared document acting as the collateral check and interest handled automatically. The app is deployed on the **Sepolia Testnet** and uses **MetaMask** for authentication.
 
-> ✏️ Lines marked **[CONFIRM]** are placeholders. Check them against your code and edit or delete them before you commit this file.
 
-**Contract (Sepolia):** [`0xEA7475F4eF55336bf631635dF6f37d26F236bE61`](https://sepolia.etherscan.io/address/0xEA7475F4eF55336bf631635dF6f37d26F236bE61) **[CONFIRM: network]**
+**Contract (Sepolia):** [`0xEA7475F4eF55336bf631635dF6f37d26F236bE61`](https://sepolia.etherscan.io/address/0xEA7475F4eF55336bf631635dF6f37d26F236bE61) 
 
 ---
 
